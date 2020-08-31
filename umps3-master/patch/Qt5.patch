@@ -1,0 +1,179 @@
+From 1db4d6c82cbcd6b6a4f1bbd97e64b5a4f6c2f743 Mon Sep 17 00:00:00 2001
+From: Mattia Biondi <mattiabiondi1@gmail.com>
+Date: Sun, 5 Apr 2020 21:50:44 +0200
+Subject: [PATCH] Qt5
+
+---
+ src/frontends/qmps/add_breakpoint_dialog.cc | 4 ++--
+ src/frontends/qmps/add_suspect_dialog.cc    | 8 ++++----
+ src/frontends/qmps/add_tracepoint_dialog.cc | 4 ++--
+ src/frontends/qmps/code_view.cc             | 4 ++--
+ src/frontends/qmps/hex_view.cc              | 4 ++--
+ src/frontends/qmps/monitor_window.cc        | 4 ++--
+ src/frontends/qmps/terminal_view.cc         | 2 +-
+ src/frontends/qmps/terminal_window.cc       | 2 +-
+ 8 files changed, 16 insertions(+), 16 deletions(-)
+
+diff --git a/src/frontends/qmps/add_breakpoint_dialog.cc b/src/frontends/qmps/add_breakpoint_dialog.cc
+index 80d3d26..df2776f 100644
+--- a/src/frontends/qmps/add_breakpoint_dialog.cc
++++ b/src/frontends/qmps/add_breakpoint_dialog.cc
+@@ -41,8 +41,8 @@ AddBreakpointDialog::AddBreakpointDialog(QWidget* parent)
+ 	layout->addWidget(new QLabel("ASID:"), 0, 0);
+ 	asidEditor = new AsidLineEdit;
+ 	layout->addWidget(asidEditor, 0, 1);
+-	asidEditor->setMinimumWidth(asidEditor->fontMetrics().horizontalAdvance("0") * 5);
+-	asidEditor->setMaximumWidth(asidEditor->fontMetrics().horizontalAdvance("0") * 6);
++	asidEditor->setMinimumWidth(asidEditor->fontMetrics().width("0") * 5);
++	asidEditor->setMaximumWidth(asidEditor->fontMetrics().width("0") * 6);
+ 
+ 	layout->setColumnMinimumWidth(2, 12);
+ 
+diff --git a/src/frontends/qmps/add_suspect_dialog.cc b/src/frontends/qmps/add_suspect_dialog.cc
+index 480ddb6..61fb21d 100644
+--- a/src/frontends/qmps/add_suspect_dialog.cc
++++ b/src/frontends/qmps/add_suspect_dialog.cc
+@@ -46,14 +46,14 @@ AddSuspectDialog::AddSuspectDialog(QWidget* parent)
+ 	layout->addWidget(new QLabel("ASID:"), 0, 0);
+ 	asidEditor = new AsidLineEdit;
+ 	layout->addWidget(asidEditor, 0, 1);
+-	asidEditor->setMinimumWidth(asidEditor->fontMetrics().horizontalAdvance("0x00__"));
+-	asidEditor->setMaximumWidth(asidEditor->fontMetrics().horizontalAdvance("0x00__"));
++	asidEditor->setMinimumWidth(asidEditor->fontMetrics().width("0x00__"));
++	asidEditor->setMaximumWidth(asidEditor->fontMetrics().width("0x00__"));
+ 
+ 	layout->setColumnMinimumWidth(2, 12);
+ 
+ 	layout->addWidget(new QLabel("Start:"), 0, 3);
+ 	startAddressEdit = new AddressLineEdit;
+-	startAddressEdit->setMinimumWidth(startAddressEdit->fontMetrics().horizontalAdvance("0xdead.beef__"));
++	startAddressEdit->setMinimumWidth(startAddressEdit->fontMetrics().width("0xdead.beef__"));
+ 	layout->addWidget(startAddressEdit, 0, 4);
+ 	connect(startAddressEdit, SIGNAL(textChanged(const QString&)), this, SLOT(validate()));
+ 
+@@ -61,7 +61,7 @@ AddSuspectDialog::AddSuspectDialog(QWidget* parent)
+ 
+ 	layout->addWidget(new QLabel("End:"), 0, 6);
+ 	endAddressEdit = new AddressLineEdit;
+-	endAddressEdit->setMinimumWidth(endAddressEdit->fontMetrics().horizontalAdvance("0xdead.beef__"));
++	endAddressEdit->setMinimumWidth(endAddressEdit->fontMetrics().width("0xdead.beef__"));
+ 	layout->addWidget(endAddressEdit, 0, 7);
+ 	connect(endAddressEdit, SIGNAL(textChanged(const QString&)), this, SLOT(validate()));
+ 
+diff --git a/src/frontends/qmps/add_tracepoint_dialog.cc b/src/frontends/qmps/add_tracepoint_dialog.cc
+index 134b869..101c03d 100644
+--- a/src/frontends/qmps/add_tracepoint_dialog.cc
++++ b/src/frontends/qmps/add_tracepoint_dialog.cc
+@@ -47,7 +47,7 @@ AddTracepointDialog::AddTracepointDialog(QWidget* parent)
+ 
+ 	layout->addWidget(new QLabel("Start:"), gridRow, 0);
+ 	startAddressEdit = new AddressLineEdit;
+-	startAddressEdit->setMinimumWidth(startAddressEdit->fontMetrics().horizontalAdvance("0xdead.beef__"));
++	startAddressEdit->setMinimumWidth(startAddressEdit->fontMetrics().width("0xdead.beef__"));
+ 	layout->addWidget(startAddressEdit, gridRow, 1);
+ 	connect(startAddressEdit, SIGNAL(textChanged(const QString&)), this, SLOT(validate()));
+ 
+@@ -55,7 +55,7 @@ AddTracepointDialog::AddTracepointDialog(QWidget* parent)
+ 
+ 	layout->addWidget(new QLabel("End:"), gridRow, 3);
+ 	endAddressEdit = new AddressLineEdit;
+-	endAddressEdit->setMinimumWidth(endAddressEdit->fontMetrics().horizontalAdvance("0xdead.beef__"));
++	endAddressEdit->setMinimumWidth(endAddressEdit->fontMetrics().width("0xdead.beef__"));
+ 	layout->addWidget(endAddressEdit, gridRow, 4);
+ 	connect(endAddressEdit, SIGNAL(textChanged(const QString&)), this, SLOT(validate()));
+ 
+diff --git a/src/frontends/qmps/code_view.cc b/src/frontends/qmps/code_view.cc
+index 867738c..405bc33 100644
+--- a/src/frontends/qmps/code_view.cc
++++ b/src/frontends/qmps/code_view.cc
+@@ -63,7 +63,7 @@ CodeView::CodeView(Word cpuId)
+ 	codeMargin->setFont(font);
+ 	codeMargin->setCursor(Qt::PointingHandCursor);
+ 
+-	setTabStopDistance(fontMetrics().horizontalAdvance("x") * TAB_STOP_CHARS);
++	setTabStopWidth(fontMetrics().width("x") * TAB_STOP_CHARS);
+ 
+ 	// Compute viewport margins
+ 	setViewportMargins(codeMargin->sizeHint().width(), 0, 0, 0);
+@@ -331,7 +331,7 @@ CodeViewMargin::CodeViewMargin(CodeView* view)
+ QSize CodeViewMargin::sizeHint() const
+ {
+ 	QString sampleAddr = FormatAddress(0xdeadbeef);
+-	return QSize(fontMetrics().horizontalAdvance("o") * sampleAddr.size() + kMarkerSize, 0);
++	return QSize(fontMetrics().width("o") * sampleAddr.size() + kMarkerSize, 0);
+ }
+ 
+ void CodeViewMargin::paintEvent(QPaintEvent* event)
+diff --git a/src/frontends/qmps/hex_view.cc b/src/frontends/qmps/hex_view.cc
+index e65bb3b..d3e5f83 100644
+--- a/src/frontends/qmps/hex_view.cc
++++ b/src/frontends/qmps/hex_view.cc
+@@ -52,7 +52,7 @@ HexView::HexView(Word start, Word end, QWidget* parent)
+ 	setViewportMargins(margin->sizeHint().width(), 0, 0, 0);
+ 	connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateMargin(QRect,int)));
+ 
+-	setCursorWidth(fontMetrics().horizontalAdvance("o"));
++	setCursorWidth(fontMetrics().width("o"));
+ 	setLineWrapMode(NoWrap);
+ 	setOverwriteMode(true);
+ 	setTabChangesFocus(true);
+@@ -365,7 +365,7 @@ HexViewMargin::HexViewMargin(HexView* view)
+ 
+ QSize HexViewMargin::sizeHint() const
+ {
+-	return QSize(kLeftPadding + fontMetrics().horizontalAdvance("0xdead.beef") + kRightPadding, 0);
++	return QSize(kLeftPadding + fontMetrics().width("0xdead.beef") + kRightPadding, 0);
+ }
+ 
+ void HexViewMargin::paintEvent(QPaintEvent* event)
+diff --git a/src/frontends/qmps/monitor_window.cc b/src/frontends/qmps/monitor_window.cc
+index 1dffa17..d0cc258 100644
+--- a/src/frontends/qmps/monitor_window.cc
++++ b/src/frontends/qmps/monitor_window.cc
+@@ -811,7 +811,7 @@ StatusDisplay::StatusDisplay(QWidget* parent)
+ 
+ 	layout->addWidget(new QLabel("Status:"));
+ 	statusLabel = new QLabel;
+-	statusLabel->setFixedWidth(statusLabel->fontMetrics().horizontalAdvance("Powered off_"));
++	statusLabel->setFixedWidth(statusLabel->fontMetrics().width("Powered off_"));
+ 	layout->addWidget(statusLabel);
+ 
+ 	layout->addSpacing(kFieldSpacing);
+@@ -819,7 +819,7 @@ StatusDisplay::StatusDisplay(QWidget* parent)
+ 	layout->addWidget(new QLabel("ToD:"));
+ 	todLabel = new QLabel;
+ 	todLabel->setFont(Appl()->getMonospaceFont());
+-	todLabel->setFixedWidth(todLabel->fontMetrics().horizontalAdvance("00000000:00000000"));
++	todLabel->setFixedWidth(todLabel->fontMetrics().width("00000000:00000000"));
+ 	layout->addWidget(todLabel);
+ 
+ 	statusLabel->setText("-");
+diff --git a/src/frontends/qmps/terminal_view.cc b/src/frontends/qmps/terminal_view.cc
+index 3be1502..045c7bc 100644
+--- a/src/frontends/qmps/terminal_view.cc
++++ b/src/frontends/qmps/terminal_view.cc
+@@ -39,7 +39,7 @@ TerminalView::TerminalView(TerminalDevice* terminal, QWidget* parent)
+ 
+ 	QFont font = Appl()->getMonospaceFont();
+ 	setFont(font);
+-	setCursorWidth(fontMetrics().horizontalAdvance("o"));
++	setCursorWidth(fontMetrics().width("o"));
+ 
+ 	// Disable features that look silly in a basic terminal widget
+ 	setContextMenuPolicy(Qt::NoContextMenu);
+diff --git a/src/frontends/qmps/terminal_window.cc b/src/frontends/qmps/terminal_window.cc
+index cc61f72..6f6a422 100644
+--- a/src/frontends/qmps/terminal_window.cc
++++ b/src/frontends/qmps/terminal_window.cc
+@@ -60,7 +60,7 @@ TerminalWindow::TerminalWindow(unsigned int devNo, QWidget* parent)
+ 		restoreGeometry(savedGeometry.toByteArray());
+ 	} else {
+ 		QFontMetrics fm = terminalView->fontMetrics();
+-		resize(fm.horizontalAdvance("x") * kDefaultCols, fm.lineSpacing() * kDefaultRows);
++		resize(fm.width("x") * kDefaultCols, fm.lineSpacing() * kDefaultRows);
+ 	}
+ 
+ 	connect(debugSession, SIGNAL(MachineReset()), this, SLOT(onMachineReset()));
+-- 
+2.26.0
+
