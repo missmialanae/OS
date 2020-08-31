@@ -1,5 +1,7 @@
 <h1><img src="src/frontends/qmps/data/icons/64x64/umps3.svg" alt="uMPS" align="center"> µMPS</h1>
 
+This is the OS Project for Mia Jenkins and Shourat Sandhawalia.
+
 A complete virtual machine simulator based around the MIPS R2/3000 microprocessor.
 
 Please report any bugs you find by [creating an issue ticket](https://github.com/virtualsquare/umps3/issues/new) here on GitHub.
