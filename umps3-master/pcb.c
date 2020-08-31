@@ -6,10 +6,11 @@
 
 //global pointer for free list
 HIDDEN pcb_t * pcbfree-h;
-/********************Allocation and Deallocation*************/
+
+/********************Allocation and Deallocation*****************/
 initPcb(){
 	static pcb_t foo[MAXPROC];
-	pcbfree-h = NULL;
+	pcbfree_h = NULL;
 
 	for(int i = 0; i < MAXPROC; i++){
 		freepcb(& foo[i]);
@@ -18,15 +19,26 @@ initPcb(){
 }//initPcb
 
 void freePcb (pcb_t *p){
+	// insett the element pointed to by p onto the pcbFree list
 
-}
+}// freePcb
 
 pcb_t *allocPcb (){
+	//remove an element from the pcbfree list
 
-}
+	//check to see if the pcbfree list is empty 
+	if (pcbfree_h == NULL){
+		return NULL;
+	}else{
+		//remove the element from the list portion 
+
+		//
+	}
+
+}//allocPcb
 
 
-/********************QUEUE MANAGEMENT***************************/
+/********************QUEUE MAINTENTANCE***************************/
 
 pcb_t mkemptyProcQ(){
 	// makes the whole queue empty and returns a pointer to the tail of an empty process queue
@@ -59,6 +71,7 @@ void insertProcQ (pcb_t **tp, pcb_t *p){
 
 	tp-> p_next = head; //creating a dummy node
 	tp = tail; //another dummy node
+
 	if(emptyProcQ(tp)){
 		return NULL; // list is empty
 		
@@ -88,20 +101,23 @@ pcb_t removeProcQ (pcb_t *tp){
 		return NULL; // list is empty 
 	} 
 
-	pcb_t *head = tp->p_next;
-	pcb_t temp = head;
-	head = p_next;
-	freepcb(temp);
-
 	//set head to temp node
 	//delete the temp node 
 	//free pcb
 	//reset pointers
 
+	pcb_t *head = tp->p_next;
+	pcb_t temp = head;
+	head = p_next;
+
+	//add her to the freelist
+	freepcb(temp);
+
 }// removeProcQ
 
 pcb_t outProcQ (pcb_t **tp, pcb_t *p){
 	// remove pcb from the middle of the queue
+
 	//doubly linked and circular queue 
 
 	//check queue
@@ -109,11 +125,62 @@ pcb_t outProcQ (pcb_t **tp, pcb_t *p){
 		return NULL;
 	}
 
-
 }
 
+/*********************** PROCESS TREE MAINTENANCE ***********************/
+int emptyChild(pcb_t *prnt){
+	//return a true value if the pcb pointed to by p has no children
+	return (p_child == NULL);
 
+}// emptyChild
 
+void insertChild(pcb_t *prnt, pcb_t *p){
+	//makes the pcb pointed to by p a child of the pcb pointed to by prnt 
+	// insert first child for constant 
 
+	//dummy nodes are created
+	pcb_t *old = prnt -> child;
 
+	//check tree
+	if(emptyChild(prnt)){
+		return NULL; //list is empty 
+	}// list is not empty 
 
+	//set parent pointer to point to new child 
+	prnt ->child = p;
+
+	//make the new child point to new sibling 
+	p_sib = old; 
+
+}// insertChild
+
+pcb_t *removeChild (pcb_t *p){
+	//makes the first child of the pcb pointed to by p no longer a child of p
+
+	//dummy nodes
+	//gonna set the old child's sibling to a pointer 
+	pcb_t *new = p_sib;
+
+	//check the tree
+	if(emptyChild(prnt)){
+		return NULL; //list is empty 
+	}// list is not empty 
+
+	//set the parent to new sibling 
+	new = prnt_child;
+
+	//add her to the freelist
+	freepcb(p);
+
+} // removeChild
+
+pcb_t *outChild(pcb_t *p){
+	//makes the pcb pointed to by p no longer the child of it parent 
+
+	//check to see if the pcb has a parent 
+	//if empty return NULL
+
+	//if not empty 
+}// outChild
+
+/************************END*******************************/
