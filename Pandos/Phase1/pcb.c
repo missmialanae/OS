@@ -128,6 +128,7 @@ pcb_t outProcQ (pcb_t **tp, pcb_t *p){
 }
 
 /*********************** PROCESS TREE MAINTENANCE ***********************/
+
 int emptyChild(pcb_t *prnt){
 	//return a true value if the pcb pointed to by p has no children
 	return (p_child == NULL);
@@ -135,52 +136,52 @@ int emptyChild(pcb_t *prnt){
 }// emptyChild
 
 void insertChild(pcb_t *prnt, pcb_t *p){
-	//makes the pcb pointed to by p a child of the pcb pointed to by prnt 
-	// insert first child for constant 
+	       
+       if(emptyChild(p_Child)){ //check if tree is empty
+       	return NULL;
+       }
+        if(pcb_PTR *p = temp){
+        	temp -> p_leftChild = new p_leftChild; //put new child in a new node with temp 
+        	p_leftChild = p_next; //insert child
+        	freepcb(temp); //free temp
+        }
 
-	//dummy nodes are created
-	pcb_t *old = prnt -> child;
-
-	//check tree
-	if(emptyChild(prnt)){
-		return NULL; //list is empty 
-	}// list is not empty 
-
-	//set parent pointer to point to new child 
-	prnt ->child = p;
-
-	//make the new child point to new sibling 
-	p_sib = old; 
+        if(pcb_PTR * p_Child = temp){
+        	temp -> p_rightChild = new p_rightChild; //puts new right child in new node with temp
+        	p_rightChild = p_next; //insert child
+        	freepcb(temp); //free temp
+        }
 
 }// insertChild
 
 pcb_t *removeChild (pcb_t *p){
-	//makes the first child of the pcb pointed to by p no longer a child of p
+		if(emptyChild (p_Child )){ //if tree is empty, return null
+		return NULL;
+	}
 
-	//dummy nodes
-	//gonna set the old child's sibling to a pointer 
-	pcb_t *new = p_sib;
+	if(pcb_PTR *p = p_next){ 
+	pcb_PTR -> temp = p_leftChild; //set temp to left child 
+	p_leftChild = NULL; //delete the left child 
+	freepcb(temp); //free the temp
 
-	//check the tree
-	if(emptyChild(prnt)){
-		return NULL; //list is empty 
-	}// list is not empty 
+	else if(pcb_PTR * p = p_next){
+		pcb_PTR -> temp = p_rightChild; // set temp to right child 
+		p_rightChild = NULL; //delete the right child 
+		freepcb(temp); //free the temp 
+	}
+	
 
-	//set the parent to new sibling 
-	new = prnt_child;
-
-	//add her to the freelist
-	freepcb(p);
+	}
 
 } // removeChild
 
 pcb_t *outChild(pcb_t *p){
-	//makes the pcb pointed to by p no longer the child of it parent 
+	if(emptyChild(p)){ //checks if tree is empty
+ 		return NULL;
 
-	//check to see if the pcb has a parent 
-	//if empty return NULL
-
-	//if not empty 
-}// outChild
+ 		//other code to remove a middle child in tree
+ 	}
+ 	
+	}// outChild
 
 /************************END*******************************/
