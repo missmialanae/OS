@@ -48,19 +48,25 @@ pcb_t *allocPcb (){
 	//check to see if the pcbfree list is empty 
 	if (pcbfree_h == NULL){
 		return NULL;
-	}else{ //set the pcb and give it's information 
+	}
+
+	else{ //set the pcb and give it's information 
 
 		//make sure it's not being used
-	if(pcb_t ==NULL){ // that pcb is empty 
+		if(pcb_t ==NULL){ // that pcb is empty 
 
 		//set the information to the pcb
-		pcb_t->p_next == NULL; 
-		pcb_t ->p_prev == NULL;
-	}
+			pcb_t->p_next == NULL; 
+			pcb_t ->p_prev == NULL;
+	
 
-	}
 
-}//allocPcb
+		} 
+
+	}//allocPcb
+
+	return; 
+}
 
 
 /********************QUEUE MAINTENTANCE***************************/
@@ -137,20 +143,35 @@ pcb_t removeProcQ (pcb_t *tp){
 
 	//add her to the freelist
 	freepcb(temp);
+	return; 
 
 }// removeProcQ
 
 pcb_t outProcQ (pcb_t **tp, pcb_t *p){
-	// remove pcb from the middle of the queue
+	// remove pcb from the middle of the queue; we want to delete p
+	pcb_t *head;
+	pcb_t *prev;
+	tp->p_next = head; 
+
 
 	//doubly linked and circular queue 
 
 	//check queue
-	if(emptyProcQ(tp)){
+	if(emptyProcQ(tp)){ // if queue is emptu 
 		return NULL;
 	}
 
-	
+	/*queue is not empty */
+
+	//if the node is the only node in the queue
+	if(head->p_next == p){ // if head is equal to p
+		p == NULL; // delete p
+		freepcb(head); //free the head pointer
+		return; //return nothing since nothing is there
+	}
+
+	/* more than one node is  here */
+
 
 }
 
@@ -164,20 +185,20 @@ int emptyChild(pcb_t *prnt){
 
 void insertChild(pcb_t *prnt, pcb_t *p){
 	       
-       if(emptyChild(p_Child)){ //check if tree is empty
-       	return NULL;
-       }
-        if(pcb_PTR *p = temp){
-        	temp -> p_leftChild = new p_leftChild; //put new child in a new node with temp 
-        	p_leftChild = p_next; //insert child
-        	freepcb(temp); //free temp
-        }
+   if(emptyChild(p_Child)){ //check if tree is empty
+   	return NULL;
+   }
+    if(pcb_PTR *p = temp){
+    	temp -> p_leftChild = new p_leftChild; //put new child in a new node with temp 
+    	p_leftChild = p_next; //insert child
+    	freepcb(temp); //free temp
+    }
 
-        if(pcb_PTR * p_Child = temp){
-        	temp -> p_rightChild = new p_rightChild; //puts new right child in new node with temp
-        	p_rightChild = p_next; //insert child
-        	freepcb(temp); //free temp
-        }
+    if(pcb_PTR * p_Child = temp){
+    	temp -> p_rightChild = new p_rightChild; //puts new right child in new node with temp
+    	p_rightChild = p_next; //insert child
+    	freepcb(temp); //free temp
+    }
 
 }// insertChild
 
@@ -196,19 +217,20 @@ pcb_t *removeChild (pcb_t *p){
 		p_rightChild = NULL; //delete the right child 
 		freepcb(temp); //free the temp 
 	}
-	
 
+	return; 
 	}
 
 } // removeChild
 
 pcb_t *outChild(pcb_t *p){
+
 	if(emptyChild(p)){ //checks if tree is empty
  		return NULL;
 
  		//other code to remove a middle child in tree
- 	}
+ 	} 
 
-	}// outChild
+}// outChild
 
 /************************END*******************************/
