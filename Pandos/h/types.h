@@ -17,8 +17,8 @@ typedef unsigned int memaddr;
 /* process control block type */
 typedef struct pcb_t {
 /* process queue fields */
-struct pcb t *p next, /* pointer to next entry */
-			 *p prev, /* pointer to prev entry */
+struct pcb t *p_next, /* pointer to next entry */
+			 *p_prev, /* pointer to prev entry */
 
 /* process tree fields */
 *p prnt, /* pointer to parent */
@@ -26,12 +26,12 @@ struct pcb t *p next, /* pointer to next entry */
 *p sib; /* pointer to sibling */
 
 /* process status information */
-state_t 	p s; /* processor state */
-cpu t 		p time; /* cpu time used by proc */
-int 		*p semAdd; /* pointer to sema4 on */
+state_t 	p_s; /* processor state */
+cpu t 		p_time; /* cpu time used by proc */
+int 		*p_semAdd; /* pointer to sema4 on */
 						/* which process blocked */
 /* support layer information */
-support t 	*p supportStruct;
+support t 	*p_supportStruct;
 /* ptr to support struct */
 } pcb_t;
 

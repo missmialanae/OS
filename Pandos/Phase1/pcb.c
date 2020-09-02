@@ -5,7 +5,7 @@
 #include "../h/pcb.h"
 
 //global pointer for free list
-HIDDEN pcb_t * pcbfree-h;
+HIDDEN pcb_t * pcbfree_h;
 
 /********************Allocation and Deallocation*****************/
 initPcb(){
@@ -19,7 +19,26 @@ initPcb(){
 }//initPcb
 
 void freePcb (pcb_t *p){
-	// insett the element pointed to by p onto the pcbFree list
+
+	//created dummy node because I couldn't figure out how to access other data 
+	pcb_t *head;
+	// insert the element pointed to by p into the pcbFree list 
+	// check to see if the list is empty 
+
+	if(pcbfree_h == NULL){// if the list is empty
+
+		//place this node as first node since nothing is in this 
+		p->p_next = NULL; //setting the next to null 
+
+		//setting p to the head since it would be the head
+		head = p;
+	} // list is not empty therefore you are adding it at the end 
+	//setting the p's p_next to null since nothing is there
+	p->p_next = NULL;
+	//setting the dummy head node to p
+	head->p_next = p;
+
+	// add the p
 
 }// freePcb
 
@@ -29,10 +48,16 @@ pcb_t *allocPcb (){
 	//check to see if the pcbfree list is empty 
 	if (pcbfree_h == NULL){
 		return NULL;
-	}else{
-		//remove the element from the list portion 
+	}else{ //set the pcb and give it's information 
 
-		//
+		//make sure it's not being used
+	if(pcb_t ==NULL){ // that pcb is empty 
+
+		//set the information to the pcb
+		pcb_t->p_next == NULL; 
+		pcb_t ->p_prev == NULL;
+	}
+
 	}
 
 }//allocPcb
@@ -125,6 +150,8 @@ pcb_t outProcQ (pcb_t **tp, pcb_t *p){
 		return NULL;
 	}
 
+	
+
 }
 
 /*********************** PROCESS TREE MAINTENANCE ***********************/
@@ -155,7 +182,7 @@ void insertChild(pcb_t *prnt, pcb_t *p){
 }// insertChild
 
 pcb_t *removeChild (pcb_t *p){
-		if(emptyChild (p_Child )){ //if tree is empty, return null
+		if(emptyChild (p_child )){ //if tree is empty, return null
 		return NULL;
 	}
 
@@ -181,7 +208,7 @@ pcb_t *outChild(pcb_t *p){
 
  		//other code to remove a middle child in tree
  	}
- 	
+
 	}// outChild
 
 /************************END*******************************/
