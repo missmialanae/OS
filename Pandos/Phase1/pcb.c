@@ -108,8 +108,6 @@ insertProcQ (pcb_t **tp, pcb_t *p){
 		(*tp)->p_next = p; 
 
 	}
-
-
 }// insertProcQ
 
 pcb_t removeProcQ (pcb_t *tp){
@@ -165,28 +163,60 @@ pcb_t outProcQ (pcb_t **tp, pcb_t *p){
 	pcb_t *head = tp->p_next; //settting a place to access head stuff
 
 
-	//if node is not there
+	//if the tree is actually empty 
 	if(emptyProcQ(*tp)){
 		return NULL;
 	}
 
 	/****** What if i am the only node *****/
 
-	if(head = p){ //if I am the head node and what you are looking for 
-		removeProcQ(p); //call removeProcQ
+	if(head = temp){ //if I am the head node and what you are looking for 
+		removeProcQ(temp); //call removeProcQ
 	}
 
 	/******* located in the middle *********/
 
 	//traverse the list
-	temp->p_next->p_prev = temp->p_prev;
-	temp->p_prev->p_next = temp->p_next;
 
-	//if p is not then traverse through the list until you find p
-	//one you find p call removeProcQ and reset pointer
+	if(temp->p_next != p){//if temp is not p
 
-	//Return something 
-	return; 
+		//transverse through the list
+		temp->p_next->p_prev = temp->p_prev;
+		temp->p_prev->p_next = temp->p_next;
+
+		//find p
+		if(temp->p_next = p){
+			temp->p_next = temp->p_prev;
+			temp->p_next = NULL; 
+			temp->p_prev = NULL;
+			freePcb(temp);
+			return outProc();
+		}
+	}
+
+	if((*tp)=temp){
+		temp = tp; // temp to the tp 
+		pcb_t *tail = temp->p_prev; // dummhy nod that set new tail 
+
+		tail->p_next = head;// pointing to head 
+		head->p_prev = tail; // head point to new tail 
+
+		//getting rid of the pointers
+		temp->prev = NULL;
+		temp->p_next = NULL;
+
+		//resetting the tp
+		tail = tp; 
+		
+		//put temp back onto free list 
+		freepcb(temp);
+
+		return outProc();
+	}
+
+
+	//Return 
+	return NULL; 
 }
 
 /*********************** PROCESS TREE MAINTENANCE ***********************/
