@@ -3,6 +3,7 @@
 #include "../h/const.h"
 #include "../h/types.h"
 #include "../h/pcb.h"
+#include "../h/asl.h"
 
 //global pointer for free list
 HIDDEN pcb_t * pcbfree_h;
@@ -20,25 +21,7 @@ initPcb(){
 
 void freePcb (pcb_t *p){
 
-	//created dummy node because I couldn't figure out how to access other data 
-	pcb_t *head;
-	// insert the element pointed to by p into the pcbFree list 
-	// check to see if the list is empty 
-
-	if(pcbfree_h == NULL){// if the list is empty
-
-		//place this node as first node since nothing is in this 
-		p->p_next = NULL; //setting the next to null 
-
-		//setting p to the head since it would be the head
-		head = p;
-	} // list is not empty therefore you are adding it at the end 
-	//setting the p's p_next to null since nothing is there
-	p->p_next = NULL;
-	//setting the dummy head node to p
-	head->p_next = p;
-
-	// add the p
+	insertProcQ(*p);
 
 }// freePcb
 
@@ -53,15 +36,15 @@ pcb_t *allocPcb (){
 	else{ //set the pcb and give it's information 
 
 		//make sure it's not being used
-		if(pcb_t ==NULL){ // that pcb is empty 
+		pcb_t p = NULL // that pcb is empty 
 
 		//set the information to the pcb
-			pcb_t->p_next == NULL; 
-			pcb_t ->p_prev == NULL;
-	
+			p->p_next = NULL; 
+			p->p_prev = NULL;
+			p->semAdd = NULL;
+			//p->s_next = NULL;
+			//p->ProcQ = NULL;
 
-
-		} 
 
 	}//allocPcb
 
@@ -90,7 +73,7 @@ pcb_t *headProcQ(pcb_t *tp){
 	return (tp -> p_next);
 }// headProcQ
 
-void insertProcQ (pcb_t **tp, pcb_t *p){
+insertProcQ (pcb_t **tp, pcb_t *p){
 
 	//inserts a new element into the queue
 
@@ -109,16 +92,20 @@ void insertProcQ (pcb_t **tp, pcb_t *p){
 	}else{ // list is not empty 
 
 		//set head to be the tp's p_next to head 
-		tp-> p_next = head;
+		(*tp)-> p_next = head;
 
 		//set p to be the new tp
 		tail = p; 
 
 		//set tp's p_next to the pointer 
-		tp->p_next = p;
+		(*tp)->p_next = p;
 
 		//setting the p pointer to the head dummy node
 		p-> p_next = head; 
+
+		head->p_next = head
+
+		(*tp)->p_next = p; 
 
 	}
 
@@ -132,104 +119,156 @@ pcb_t removeProcQ (pcb_t *tp){
 		return NULL; // list is empty 
 	} 
 
-	//set head to temp node
-	//delete the temp node 
-	//free pcb
-	//reset pointers
+	if((*tp)->p_next =(*tp) ){ // If the only one in the queue
+		//set the whole thing to NULL
+		(*tp)->p_prev = NULL; 
+		(*tp)>p_next = NULL;
+		(*tp)= NULL; 
 
-	pcb_t *head = tp->p_next;
-	pcb_t temp = head;
-	head = p_next;
+		//put back on to freelist
+		freepcb(tp);
+	}
 
-	//add her to the freelist
-	freepcb(temp);
-	return; 
+	/******** What if I am not the only one in the queue******/
+
+	//dummy nodes
+	pcb_t *head = tp->p_next; // create a dummy node to access the head
+	pcb_t *newHead = head->p_next; // access the node that is acually next to be head 
+	pcb_t*temp; //so we don't delete the head 
+
+	//resetting the tp
+	(*tp)->p_next = newHead; 
+
+	//resetting the old head's relationship
+	head-> p_next= NULL;
+	head->p_prev = NULL;
+
+	// reset the pointer for the new head
+	newHead->p_prev = (*tp);
+
+	//set the old head to a temp node
+	temp = head; 
+
+	//freepcb to add her to the freelist 
+	freePcb(temp);
+
+	//return 
+	return headProcQ(**tp);
 
 }// removeProcQ
 
 pcb_t outProcQ (pcb_t **tp, pcb_t *p){
 	// remove pcb from the middle of the queue; we want to delete p
-	pcb_t *head;
-	pcb_t *prev;
-	tp->p_next = head; 
 
+	//dummy nodes 
+	pcb_t *temp = p;
+	pcb_t *head = tp->p_next; 
 
-	//doubly linked and circular queue 
+	//traverse the list
+	temp->p_next->p_prev = temp->p_prev;
+	temp->p_prev->p_next = temp->p_next;
 
-	//check queue
-	if(emptyProcQ(tp)){ // if queue is emptu 
+	//if node is not there
+	if(emptyProcQ(*tp)){
 		return NULL;
 	}
 
-	/*queue is not empty */
+	//if p is the head of the queue
+	//if p is the head call removeProcQ and reset pointers
+	//if p is not then traverse through the list until you find p
+	//one you find p call removeProcQ and reset pointer
 
-	//if the node is the only node in the queue
-	if(head->p_next == p){ // if head is equal to p
-		p == NULL; // delete p
-		freepcb(head); //free the head pointer
-		return; //return nothing since nothing is there
-	}
-
-	/* more than one node is  here */
-
+	//Return outprocQ
+	return outProcQ(tp);
 
 }
 
 /*********************** PROCESS TREE MAINTENANCE ***********************/
 
-int emptyChild(pcb_t *prnt){
+int emptyChild(pcb_t *p){
 	//return a true value if the pcb pointed to by p has no children
-	return (p_child == NULL);
-
+	return (p == NULL);
 }// emptyChild
 
 void insertChild(pcb_t *prnt, pcb_t *p){
-	       
-   if(emptyChild(p_Child)){ //check if tree is empty
-   	return NULL;
-   }
-    if(pcb_PTR *p = temp){
-    	temp -> p_leftChild = new p_leftChild; //put new child in a new node with temp 
-    	p_leftChild = p_next; //insert child
-    	freepcb(temp); //free temp
-    }
+	//make the pcb pointed ot by p a child of the pcb pointed to by prnt
 
-    if(pcb_PTR * p_Child = temp){
-    	temp -> p_rightChild = new p_rightChild; //puts new right child in new node with temp
-    	p_rightChild = p_next; //insert child
-    	freepcb(temp); //free temp
-    }
+	//dummy nodes cause we stan 
+	
 
-}// insertChild
+	//insert at the beggining for constant 
 
-pcb_t *removeChild (pcb_t *p){
-		if(emptyChild (p_child )){ //if tree is empty, return null
+	//Check to see if the tree is empty 
+	if(emptyChild(p)){
 		return NULL;
 	}
-
-	if(pcb_PTR *p = p_next){ 
-	pcb_PTR -> temp = p_leftChild; //set temp to left child 
-	p_leftChild = NULL; //delete the left child 
-	freepcb(temp); //free the temp
-
-	else if(pcb_PTR * p = p_next){
-		pcb_PTR -> temp = p_rightChild; // set temp to right child 
-		p_rightChild = NULL; //delete the right child 
-		freepcb(temp); //free the temp 
+	if(prnt->p_child = NULL){// if 
+		prnt->p_child = p; // setting the parent to the child 
 	}
+
+	/***** What if the parent has a child*****/
+
+
+
+	//parent point to new child 
+
+   
+}// insertChild
+
+	
+
+pcb_t *removeChild (pcb_t *p){
+	//we are given a parent 
+
+	if(emptyChild(p)){ //if tree is empty, return null
+	return NULL;
+	}
+
+	if(p->child->p_sib == NULL){ //there is only one child
+		p->p_child = NULL; 
+		prnt->p_child = NULL; 
+	}
+
+	//setting dummhy nodes to prevent confusion
+	p->p_child = oldchild;
+	pcb_t *parent = oldchild->p_prnt;
+	pcb_t *newChild = oldchild->p_sib;
+
+	//stops next sib from pointing
+	newChild->p_sib = NULL;
+	//set parent first child as new sibling
+	parent->p_sib = newchild;
+	//make p have no siblings
+	oldchild->p_sib = NULL;
+	oldChild->p_prnt = NULL; 
 
 	return; 
-	}
 
 } // removeChild
 
 pcb_t *outChild(pcb_t *p){
+	//p point to the child 
+	pcb_t *parent = p->p_prnt;
 
-	if(emptyChild(p)){ //checks if tree is empty
+
+	if(emptyChild(p)){ //checks if tree is empty; 
  		return NULL;
+ 	}
+ 	//you have a parent but they don't point back to you; not first child
 
- 		//other code to remove a middle child in tree
- 	} 
+ 	//middle child 
+
+ 	//last child
+
+
+ 	//if my parent doesn't point back to me I am not the first child
+ 	if(parent->child != p){
+ 		p->p_prnt = NULL; // kill the relationship 
+ 		p-p_sibprev
+ 	}
+
+ 	//p has no parent
+ 	//p is the parent's first child 
 
 }// outChild
 
