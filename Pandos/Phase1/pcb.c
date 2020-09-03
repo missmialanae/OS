@@ -161,26 +161,32 @@ pcb_t outProcQ (pcb_t **tp, pcb_t *p){
 	// remove pcb from the middle of the queue; we want to delete p
 
 	//dummy nodes 
-	pcb_t *temp = p;
-	pcb_t *head = tp->p_next; 
+	pcb_t *temp = p; 
+	pcb_t *head = tp->p_next; //settting a place to access head stuff
 
-	//traverse the list
-	temp->p_next->p_prev = temp->p_prev;
-	temp->p_prev->p_next = temp->p_next;
 
 	//if node is not there
 	if(emptyProcQ(*tp)){
 		return NULL;
 	}
 
-	//if p is the head of the queue
-	//if p is the head call removeProcQ and reset pointers
+	/****** What if i am the only node *****/
+
+	if(head = p){ //if I am the head node and what you are looking for 
+		removeProcQ(p); //call removeProcQ
+	}
+
+	/******* located in the middle *********/
+
+	//traverse the list
+	temp->p_next->p_prev = temp->p_prev;
+	temp->p_prev->p_next = temp->p_next;
+
 	//if p is not then traverse through the list until you find p
 	//one you find p call removeProcQ and reset pointer
 
-	//Return outprocQ
-	return outProcQ(tp);
-
+	//Return something 
+	return; 
 }
 
 /*********************** PROCESS TREE MAINTENANCE ***********************/
@@ -194,7 +200,7 @@ void insertChild(pcb_t *prnt, pcb_t *p){
 	//make the pcb pointed ot by p a child of the pcb pointed to by prnt
 
 	//dummy nodes cause we stan 
-	
+	pcb_t *oldChild = prnt->child;
 
 	//insert at the beggining for constant 
 
@@ -202,23 +208,28 @@ void insertChild(pcb_t *prnt, pcb_t *p){
 	if(emptyChild(p)){
 		return NULL;
 	}
-	if(prnt->p_child = NULL){// if 
+
+	/******* What if my parent has no children ****/
+	if(prnt->p_child = NULL){// if my parent has no children 
 		prnt->p_child = p; // setting the parent to the child 
 	}
 
 	/***** What if the parent has a child*****/
 
-
+	//have p point to the sibling
+	p->p_sib = prnt->p_child; 
 
 	//parent point to new child 
+	prnt->p_prnt = p; 
 
-   
-}// insertChild
+	//have new child point to new parent 
+	p->p_prnt = prnt;
 
+}
 	
 
 pcb_t *removeChild (pcb_t *p){
-	//we are given a parent 
+	//we are given a parent from top 
 
 	if(emptyChild(p)){ //if tree is empty, return null
 	return NULL;
@@ -247,28 +258,35 @@ pcb_t *removeChild (pcb_t *p){
 } // removeChild
 
 pcb_t *outChild(pcb_t *p){
-	//p point to the child 
-	pcb_t *parent = p->p_prnt;
+	//make the pcb pointed to by p no longer the child of its parent
 
+	pcb_t *p = p; // dummy node for p
+	pcb_t *parent = p->p_prnt; // setting a dummy node for parent
+	pcb_t *child = parent ->p_child; // a place holder for the child
 
 	if(emptyChild(p)){ //checks if tree is empty; 
  		return NULL;
  	}
- 	//you have a parent but they don't point back to you; not first child
+
+ 	/********* You are the child ********/
+ 	if(p->p_prnt = p){
+ 		removeChild(p);
+ 	}
+
+ 	/*** Not the first child ****/
 
  	//middle child 
 
+ 	//remove pointer from p to parent 
+ 	p->p_prnt = NULL; 
+
+ 	//make child point to new sibling 
+ 	child->p_sib = p->p_sib;
+
+ 	//remove the sibling from p;
+ 	p->p_sib = NULL; 
+
  	//last child
-
-
- 	//if my parent doesn't point back to me I am not the first child
- 	if(parent->child != p){
- 		p->p_prnt = NULL; // kill the relationship 
- 		p-p_sibprev
- 	}
-
- 	//p has no parent
- 	//p is the parent's first child 
 
 }// outChild
 
