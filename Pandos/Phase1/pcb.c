@@ -42,8 +42,8 @@ pcb_t *allocPcb (){
 			p->p_next = NULL; 
 			p->p_prev = NULL;
 			p->semAdd = NULL;
-			//p->s_next = NULL;
-			//p->ProcQ = NULL;
+			p->s_next = NULL;
+			p->ProcQ = NULL;
 
 
 	}//allocPcb
@@ -151,7 +151,11 @@ pcb_t removeProcQ (pcb_t *tp){
 	freePcb(temp);
 
 	//return 
-	return headProcQ(**tp);
+	return headProcQ(**tp)	//returns the head pcb in the queue
+	if(emptyProcQ(tp)){
+		return NULL; // list is empty 
+	}
+	return (tp -> p_next);
 
 }// removeProcQ
 
