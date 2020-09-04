@@ -31,24 +31,22 @@ pcb_t *allocPcb (){
 	//check to see if the pcbfree list is empty 
 	if (pcbfree_h == NULL){
 		return NULL;
-	}
+} //set the pcb and give it's information 
 
-	else{ //set the pcb and give it's information 
+	//make sure it's not being used
+	pcb_t *p = NULL // that pcb is empty 
 
-		//make sure it's not being used
-		pcb_t p = NULL // that pcb is empty 
+	//set the information to the pcb
+	p->p_next = NULL; 
+	p->p_prev = NULL;
+	p->semAdd = NULL;
+	p->s_next = NULL;
+	p->ProcQ = mkemptyProcQ();
+	p = removeProcQ(pcbfree_h);
 
-		//set the information to the pcb
-			p->p_next = NULL; 
-			p->p_prev = NULL;
-			p->semAdd = NULL;
-			p->s_next = NULL;
-			p->ProcQ = NULL;
+//allocPcb
 
-
-	}//allocPcb
-
-	return; 
+	return p; 
 }
 
 
