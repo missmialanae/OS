@@ -71,7 +71,7 @@ pcb_t *headProcQ(pcb_t *tp){
 	return (tp -> p_next);
 }// headProcQ
 
-insertProcQ (pcb_t **tp, pcb_t *p){
+void insertProcQ (pcb_t **tp, pcb_t *p){
 
 	//inserts a new element into the queue
 

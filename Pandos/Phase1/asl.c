@@ -34,51 +34,62 @@ int insertBlocked(int *semAdd, pcb_t *p){
 	//insert the pcb pointed to by p at the tail of the process queue 
 	//inserts a new element into the queue
 
-	//creating dummy nodes
-	pcb_t *temp = p; 
-	semd_t *tempS;
+	semd_t *temp = findsem(semAdd); // finding the semaddress
+	if(temp->s_next->s_semAdd == semAdd){
+		insertProcQ(p);
+		return p; 
+	}
 
-
-	if(emptyProcQ(s_ProcQ)){
+	if(semdfree_h == NULL){
 		return NULL; // list is empty
 	}
+	semd_t *newSem = semdfree_h;
+	semdfree_h = newSem->s_next;
+	newSem->s_next = NULL;
 
-	/***** You are the only one in the list*****/
-	if(semfree_h->s_next = NULL){ // if free list points to nothing 
-		tempS->s_semAdd = findsem(semAdd)
-		sem_h->s_next = tempS;
-		temps->s_next = NULL; 
-
-	}
-	//make sure the semAdd is not being used
-	//while(temp->s_next->s_semAdd)
-
-	/*****inserting but it is not the only one****************/
-	if(semfree_h->s_next != NULL){ // if it is pointing to something
-		semd_t *next = semfree_h->s_next; //making a dummy node to store the old next
-		semfree_h->s_next = tempS; // tempS is now the new next
-		temps->s_next = next; 
-		insertProcQ(p);
-
-	}
-
-	return headProcQ(tempS);
+	temp = find(newSem->s_semAdd);
+	temp->s_next = newSem->s_next;
+	temp->s_next = newSem;
+	InsertProcQ(newSem->s_ProcQ,p);
+	return newSem; 
 }
 
 pcb_t *removeBlocked(int *semAdd){
+	semd_t *temp = findsem(semAdd);
+	if(temp->s_next->semAdd == semAdd){
+		removeProcQ(temp->s_next->s_ProcQ);
 
-	temp->s_semAdd = *semAdd; //setting the semAdd to a pcb
-	while(temp ->s_next->s_semAdd){
-		temp = s->s_next; 
+
+		if(emptyProcQ(temp->s_next->s_ProcQ)){
+			semd_t *remove = temp->s_next;
+			temp->s_next = remove->s_next;
+			remove->s_next = NULL;
+			remove->s_next = semdfree_h;
+			semdfree_h->s_next = remove; 
+		}
+
+		return; 
 	}
-	
-	findsem(semAdd);
-	return outProcQ(temp); 
-
+	return NULL; 
 }
 
 pcb_t *outBlocked(pcb_t *p){
+semd_t *temp = findsem(p->p_semAdd);
+	if(temp->s_next->semAdd == p->p_semAdd){
+		outProcQ(temp->s_next->s_ProcQ, p);
 
+
+		if(emptyProcQ(temp->s_next->s_ProcQ)){
+			semd_t *remove = temp->s_next;
+			temp->s_next = remove->s_next;
+			remove->s_next = NULL;
+			remove->s_next = semdfree_h;
+			semdfree_h->s_next = remove; 
+		}
+
+		return; 
+	}
+	return NULL; 
 
 }
 
@@ -100,7 +111,7 @@ int findsem(int *semAdd){
 	//dummy nodes 
 	pcb_t *temp = semd_h; 
 
-	if(temp->s_semAdd != semAdd ){// temp doesn't have the semAdd
+	if(temp->s_next->semAdd < semAdd ){// temp doesn't have the semAdd
 		temp = temp->s_next; //run through the list 
 	}
 
