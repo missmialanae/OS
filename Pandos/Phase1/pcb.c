@@ -1,4 +1,4 @@
-//Including the .h files
+/*Including the .h files*/
 
 #include "../h/const.h"
 #include "../h/types.h"
@@ -6,22 +6,24 @@
 #include "../h/asl.h"
 
 /*global pointer for free list*/
-HIDDEN pcb_t * pcbfree_h;
+HIDDEN pcb_t *pcbfree_h;
 
 /********************Allocation and Deallocation*****************/
-initPcb(){
+void initPcb(){
+	int i; 
+
 	static pcb_t foo[MAXPROC];
 	pcbfree_h = NULL;
 
-	for(int i = 0; i < MAXPROC; i++){
-		freepcb(& foo[i]);
+	for(i = 0; i < MAXPROC; i++){
+		freePcb(& foo[i]);
 	}
 
 }/*initPcb*/
 
 void freePcb (pcb_t *p){
 
-	insertProcQ(*p);
+	insertProcQ(&pcbfree_h,p);
 
 }/*freePcb*/
 
@@ -29,20 +31,21 @@ pcb_t *allocPcb (){
 	/*remove an element from the pcbfree list */
 
 	/*check to see if the pcbfree list is empty*/ 
-	if (pcbfree_h == NULL){
+	if (pcbfree_h == (NULL)){
 		return NULL;
 } /*set the pcb and give it's information
 
 	/make sure it's not being used*/
-	pcb_t *p = NULL /* that pcb is empty*/ 
+	pcb_t *p = NULL; /* that pcb is empty*/ 
 
 	/*set the information to the pcb*/
 	p->p_next = NULL; 
 	p->p_prev = NULL;
-	p->semAdd = NULL;
-	p->s_next = NULL;
-	p->ProcQ = mkemptyProcQ();
-	p = removeProcQ(pcbfree_h);
+	p->p_semAdd = NULL;
+	p->p_next = NULL;
+	/*p->s_ProcQ = mkEmptyProcQ();*/
+
+	p = removeProcQ(&pcbfree_h);
 
 	return p; 
 } /*allocPcb*/
@@ -50,40 +53,48 @@ pcb_t *allocPcb (){
 
 /********************QUEUE MAINTENTANCE***************************/
 
-pcb_t mkemptyProcQ(){
+pcb_t *mkEmptyProcQ(){
 	/* makes the whole queue empty and returns a pointer to the tail of an empty process queue*/
 	return NULL;
 } /*mkemptyProcq*/
 
-int emptyProcQ (pcb_t **tp){
-	//returns a boolean value whether the queeue is empty or not 
-	return (tp == NULL);
+int emptyProcQ (pcb_t *tp){
+	/*returns a boolean value whether the queeue is empty or not */
+	return (tp == (NULL));
+
 }/*emptyProcQ*/
 
 pcb_t *headProcQ(pcb_t *tp){
 
 	/*returns the head pcb in the queue*/
 	if(emptyProcQ(tp)){
-		return NULL; /*list is empty*/ 
+
+		return NULL; 
+
+		/*list is empty*/ 
 	}
+
 	return (tp -> p_next);
+
 }/*headProcQ*/
 
 void insertProcQ (pcb_t **tp, pcb_t *p){
-
 	/*inserts a new element into the queue
 
-	/*creating dummy nodes*/
+	creating dummy nodes*/
 	pcb_t *head; 
 	pcb_t *tail; 
 
 	/*set head to be the tp's p_next to head */
 
-	tp-> p_next = head; /*creating a dummy node*/
-	tp = tail; /*another dummy node*/
+	tp->p_next = head; 
+	/*creating a dummy node*/
+	tail = tp; 
+	/*another dummy node*/
 
-	if(emptyProcQ(tp)){
-		return NULL; /* list is empty*/
+	if(emptyProcQ(*tp)){
+		return NULL; 
+		/* list is empty*/
 		
 	}else{ /*list is not empty */
 
@@ -93,34 +104,38 @@ void insertProcQ (pcb_t **tp, pcb_t *p){
 		/*set p to be the new tp*/
 		tail = p; 
 
-		//set tp's p_next to the pointer 
+		/*set tp's p_next to the pointer */
 		(*tp)->p_next = p;
 
 		/*setting the p pointer to the head dummy node*/
 		p-> p_next = head; 
 
-		head->p_next = head
+		head->p_next = head;
 
 		(*tp)->p_next = p; 
 
 	}
+
 }/* insertProcQ */
 
 pcb_t removeProcQ (pcb_t *tp){
 
 	/*removes the head from the queue*/
 	if(emptyProcQ(tp)){
-		return NULL; /* list is empty */
+		return (NULL); /* list is empty */
 	} 
 
-	if((*tp)->p_next =(*tp) ){ /*If the only one in the queue
-		set the whole thing to NULL*/
-		(*tp)->p_prev = NULL; 
-		(*tp)>p_next = NULL;
-		(*tp)= NULL; 
+	if(tp->p_next == tp ){ 
+		/*If the only one in the queue */
+
+		/*set the whole thing to NULL*/
+		tp->p_prev = NULL; 
+		tp->p_next = NULL;
+		tp = (NULL); 
 
 		/*put back on to freelist*/
-		freepcb(tp);
+		freePcb(tp);
+		return *tp; 
 	}
 
 	/******** What if I am not the only one in the queue******/
@@ -128,17 +143,15 @@ pcb_t removeProcQ (pcb_t *tp){
 	/*dummy nodes*/
 	pcb_t *head = tp->p_next; /*create a dummy node to access the head*/
 	pcb_t *newHead = head->p_next; /*access the node that is acually next to be head */
-	pcb_t*temp; /*so we don't delete the head */
+	pcb_t *temp; /*so we don't delete the head */
 
 	/*resetting the tp*/
-	(*tp)->p_next = newHead; 
-
-	/*resetting the old head's relationship*/
-	head-> p_next= NULL;
-	head->p_prev = NULL;
+	tp->p_next = newHead; 
 
 	/*reset the pointer for the new head*/
-	newHead->p_prev = (*tp);
+	tp = newHead->p_prev;
+
+	tp->p_next->p_prev = NULL; 
 
 	/*set the old head to a temp node*/
 	temp = head; 
@@ -146,22 +159,24 @@ pcb_t removeProcQ (pcb_t *tp){
 	/*freepcb to add her to the freelist */
 	freePcb(temp);
 
-	/*return */
-	return headProcQ(**tp)	/*returns the head pcb in the queue*/
+	return *headProcQ(tp);
+	/*returns the head pcb in the queue*/
+
 	if(emptyProcQ(tp)){
 		return NULL; /*list is empty */
 	}
 
-	return (tp -> p_next);
+	return;
 
 }/*removeProcQ*/
 
-pcb_t outProcQ (pcb_t **tp, pcb_t *p){
+pcb_t outProcQ (pcb_t *tp, pcb_t *p){
 	/*remove pcb from the middle of the queue; we want to delete p
 
 	dummy nodes */
 	pcb_t *temp = p; 
-	pcb_t *head = tp->p_next; /*settting a place to access head stuff*/ 
+	pcb_t *head = tp->p_next; 
+	/*settting a place to access head stuff*/ 
 
 
 	/*if the tree is actually empty */
@@ -190,7 +205,7 @@ pcb_t outProcQ (pcb_t **tp, pcb_t *p){
 			temp->p_next = NULL; 
 			temp->p_prev = NULL;
 			freePcb(temp);
-			return outProc();
+			return outProcQ(temp->p_prev, p);
 		}
 	}
 
@@ -202,16 +217,16 @@ pcb_t outProcQ (pcb_t **tp, pcb_t *p){
 		head->p_prev = tail; /*head point to new tail */
 
 		/*getting rid of the pointers*/
-		temp->prev = NULL;
+		temp->p_prev = NULL;
 		temp->p_next = NULL;
 
 		/*resetting the tp*/
 		tail = tp; 
 		
 		/*put temp back onto free list */
-		freepcb(temp);
+		freePcb(temp);
 
-		return outProc();
+		return;
 	}
 
 
@@ -228,9 +243,6 @@ int emptyChild(pcb_t *p){
 
 void insertChild(pcb_t *prnt, pcb_t *p){
 	/*make the pcb pointed ot by p a child of the pcb pointed to by prnt*/
-
-	/*dummy nodes cause we stan */
-	pcb_t *oldChild = prnt->child;
 
 	/*insert at the beggining for constant */
 
@@ -265,32 +277,31 @@ pcb_t *removeChild (pcb_t *p){
 	return NULL;
 	}
 
-	if(p->child->p_sib == NULL){ /*there is only one child*/
+	if(p->p_child->p_sib == NULL){ /*there is only one child*/
 		p->p_child = NULL; 
-		prnt->p_child = NULL; 
+		p->p_prnt->p_child = NULL; 
 	}
 
 	/*setting dummhy nodes to prevent confusion*/
-	p->p_child = oldchild;
-	pcb_t *parent = oldchild->p_prnt;
-	pcb_t *newChild = oldchild->p_sib;
+	pcb_t *oldChild = p->p_child;
+	pcb_t *parent = oldChild->p_prnt;
+	pcb_t *newChild = oldChild->p_sib;
 
 	/*stops next sib from pointing*/
 	newChild->p_sib = NULL;
 	/*set parent first child as new sibling*/
-	parent->p_sib = newchild;
+	parent->p_sib = newChild;
 	/*make p have no siblings*/
-	oldchild->p_sib = NULL;
+	oldChild->p_sib = NULL;
 	oldChild->p_prnt = NULL; 
 
-	return; 
+	return newChild; 
 
 } /*removeChild*/
 
 pcb_t *outChild(pcb_t *p){
 	/*make the pcb pointed to by p no longer the child of its parent*/
 
-	pcb_t *p = p; /*dummy node for p*/
 	pcb_t *parent = p->p_prnt; /*setting a dummy node for parent*/
 	pcb_t *child = parent ->p_child; /*a place holder for the child*/
 
@@ -316,6 +327,8 @@ pcb_t *outChild(pcb_t *p){
  	/*remove the sibling from p*/
  	p->p_sib = NULL; 
 
-}// outChild
+ 	return outChild(p);
+
+}/* outChild*/
 
 /************************END*******************************/
