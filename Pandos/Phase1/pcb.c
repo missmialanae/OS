@@ -82,27 +82,19 @@ void insertProcQ (pcb_t **tp, pcb_t *p){
 	/*inserts a new element into the queue
 
 	creating dummy nodes*/
-	pcb_t *head; 
-	pcb_t *tail; 
+	pcb_t *head = tp->p_next;
 
-	/*set head to be the tp's p_next to head */
-
-	tp->p_next = head; 
 	/*creating a dummy node*/
-	tail = tp; 
-	/*another dummy node*/
 
 	if(emptyProcQ(*tp)){
 		return NULL; 
+
 		/* list is empty*/
 		
 	}else{ /*list is not empty */
 
 		/*set head to be the tp's p_next to head */
 		(*tp)-> p_next = head;
-
-		/*set p to be the new tp*/
-		tail = p; 
 
 		/*set tp's p_next to the pointer */
 		(*tp)->p_next = p;
@@ -118,11 +110,14 @@ void insertProcQ (pcb_t **tp, pcb_t *p){
 
 }/* insertProcQ */
 
-pcb_t removeProcQ (pcb_t *tp){
-
+pcb_t *removeProcQ (pcb_t **tp){
 	/*removes the head from the queue*/
+
 	if(emptyProcQ(tp)){
-		return (NULL); /* list is empty */
+		return tp; 
+		/*will not let me return NULL here*/
+
+		/* list is empty */
 	} 
 
 	if(tp->p_next == tp ){ 
@@ -135,7 +130,7 @@ pcb_t removeProcQ (pcb_t *tp){
 
 		/*put back on to freelist*/
 		freePcb(tp);
-		return *tp; 
+		return tp; 
 	}
 
 	/******** What if I am not the only one in the queue******/
@@ -159,34 +154,32 @@ pcb_t removeProcQ (pcb_t *tp){
 	/*freepcb to add her to the freelist */
 	freePcb(temp);
 
-	return *headProcQ(tp);
+	return headProcQ(tp);
 	/*returns the head pcb in the queue*/
 
 	if(emptyProcQ(tp)){
 		return NULL; /*list is empty */
 	}
 
-	return;
+	return (tp->p_next);
 
 }/*removeProcQ*/
 
-pcb_t outProcQ (pcb_t *tp, pcb_t *p){
+pcb_t *outProcQ (pcb_t **tp, pcb_t *p){
 	/*remove pcb from the middle of the queue; we want to delete p
 
 	dummy nodes */
 	pcb_t *temp = p; 
 	pcb_t *head = tp->p_next; 
-	/*settting a place to access head stuff*/ 
-
 
 	/*if the tree is actually empty */
-	if(emptyProcQ(*tp)){
+	if(emptyProcQ(tp)){
 		return NULL;
 	}
 
 	/****** What if i am the only node *****/
 
-	if(head = temp){ /*if I am the head node and what you are looking for */
+	if(head == temp){ /*if I am the head node and what you are looking for */
 		removeProcQ(temp); /*call removeProcQ*/
 	}
 
@@ -200,17 +193,17 @@ pcb_t outProcQ (pcb_t *tp, pcb_t *p){
 		temp->p_prev->p_next = temp->p_next;
 
 		/*find p*/
-		if(temp->p_next = p){
+		if(temp->p_next == p){
 			temp->p_next = temp->p_prev;
 			temp->p_next = NULL; 
 			temp->p_prev = NULL;
 			freePcb(temp);
-			return outProcQ(temp->p_prev, p);
+			return temp;
 		}
 	}
 
-	if((*tp)=temp){
-		temp = tp; /*temp to the tp */
+	if(tp == temp){
+		pcb_t *temp = tp; /*temp to the tp */
 		pcb_t *tail = temp->p_prev; /*dummhy nod that set new tail */
 
 		tail->p_next = head; /*pointing to head */
@@ -226,9 +219,8 @@ pcb_t outProcQ (pcb_t *tp, pcb_t *p){
 		/*put temp back onto free list */
 		freePcb(temp);
 
-		return;
+		return temp;
 	}
-
 
 	/*Return */
 	return NULL; 
@@ -252,7 +244,7 @@ void insertChild(pcb_t *prnt, pcb_t *p){
 	}
 
 	/******* What if my parent has no children ****/
-	if(prnt->p_child = NULL){/* if my parent has no children*/
+	if(prnt->p_child == NULL){/* if my parent has no children*/
 		prnt->p_child = p; /* setting the parent to the child */
 	}
 
@@ -310,7 +302,7 @@ pcb_t *outChild(pcb_t *p){
  	}
 
  	/********* You are the child ********/
- 	if(p->p_prnt = p){
+ 	if(p->p_prnt == p){
  		removeChild(p);
  	}
 
