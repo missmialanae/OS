@@ -9,14 +9,14 @@
 HIDDEN pcb_t *pcbfree_h;
 
 /********************Allocation and Deallocation*****************/
-void initPcb(){
+void initPcbs(){
 	int i; 
 
 	static pcb_t foo[MAXPROC];
-	pcbfree_h = NULL;
+	pcbfree_h = mkEmptyProcQ();
 
 	for(i = 0; i < MAXPROC; i++){
-		freePcb(& foo[i]);
+		insertProcQ(&pcbfree_h, &foo[i]);
 	}
 
 }/*initPcb*/
@@ -106,8 +106,8 @@ pcb_t *removeProcQ (pcb_t**tp){
 	/*removes the head element from the process queue whose tail pointer is pointed to by tp
 	Return NULL if the provess queue was empty. Otherwise return the pointer that was removed */
 
-	if(emptyProcQ(tp)){
-		return tp; 
+	if(emptyProcQ(*tp)){
+		return *tp; 
 	} 
 
 	if((*tp)->p_next == tp ){ 
@@ -139,7 +139,7 @@ pcb_t *outProcQ (pcb_t**tp, pcb_t*p){
 	pcb_t *head = (*tp)->p_next; 
 
 	/*if the tree is actually empty */
-	if(emptyProcQ(tp)){
+	if(emptyProcQ(*tp)){
 		return NULL;
 	}
 
