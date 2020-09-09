@@ -7,14 +7,24 @@
 
 /*global pointer for free list*/
 HIDDEN pcb_t *pcbfree_h;
+HIDDEN int debugg = 0; 
 
 /********************Allocation and Deallocation*****************/
+int debugA(int a){
+
+	/*a simple debug function to help fix our mistakes*/
+
+	int i;
+	i = 0; 
+
+}/* debugA */
+
 void initPcbs(){
 	int i; 
 
-	static pcb_t foo[MAXPROC];
 	pcbfree_h = mkEmptyProcQ();
-
+	static pcb_t foo[MAXPROC];
+	
 	for(i = 0; i < MAXPROC; i++){
 		insertProcQ(&pcbfree_h, &foo[i]);
 	}
@@ -27,26 +37,30 @@ void freePcb (pcb_t*p){
 
 }/*freePcb*/
 
-pcb_t *allocPcb (){
+pcb_t* allocPcb (){
 	/*remove an element from the pcbfree list */
 
 	/*check to see if the pcbfree list is empty*/ 
 	if (pcbfree_h == (NULL)){
+		debugA(1);
 		return NULL;
 } /*set the pcb and give it's information
 
 	/make sure it's not being used*/
-	pcb_t *p = NULL; /* that pcb is empty*/ 
+	debugA(debugg);
+
+	pcb_t *p = removeProcQ(&pcbfree_h); /* that pcb is empty*/ 
 
 	/*set the information to the pcb*/
 	p->p_next = NULL; 
 	p->p_prev = NULL;
 	p->p_semAdd = NULL;
-	p->p_next = NULL;
-	/*p->s_ProcQ = mkEmptyProcQ();*/
+	p->p_prnt = NULL;
+	p->p_child = NULL;
+	p->p_sib = NULL;
+	p->p_prevSib = NULL; 
 
-	p = removeProcQ(&pcbfree_h);
-
+	debugg++; 
 	return p; 
 } /*allocPcb*/
 
@@ -81,9 +95,9 @@ pcb_t *headProcQ(pcb_t *tp){
 void insertProcQ (pcb_t**tp, pcb_t*p){
 	/*inserts a new element into the queue*/
 
-	if(emptyProcQ(*tp)){
+	if(emptyProcQ(*tp)==TRUE){
 		/*if the list is empty set the new p as the tp*/
-		(*tp)->p_next = p;
+		p->p_next = p;
 		p->p_prev = p; 
 		(*tp)=p; 
 		
@@ -106,11 +120,13 @@ pcb_t *removeProcQ (pcb_t**tp){
 	/*removes the head element from the process queue whose tail pointer is pointed to by tp
 	Return NULL if the provess queue was empty. Otherwise return the pointer that was removed */
 
+	pcb_t *temp = (*tp)->p_next; 
+
 	if(emptyProcQ(*tp)){
 		return *tp; 
 	} 
 
-	if((*tp)->p_next == tp ){ 
+	if(temp == (*tp)){ 
 		/*If the only one in the queue */
 
 		/*set the whole thing to NULL*/
@@ -122,11 +138,8 @@ pcb_t *removeProcQ (pcb_t**tp){
 
 	/******** What if I am not the only one in the queue******/
 
-
-	pcb_t *temp; 
-	temp = (*tp)->p_next;
 	(*tp)->p_next = temp->p_next;
-	(*tp)->p_next->p_prev = tp;
+	(*tp)->p_next->p_prev = (*tp);
 	temp->p_next = NULL;
 	temp->p_prev = NULL;
 
@@ -146,7 +159,7 @@ pcb_t *outProcQ (pcb_t**tp, pcb_t*p){
 	/****** What if i am the only node *****/
 
 	if(head == temp){ /*if I am the head node and what you are looking for */
-		removeProcQ(temp); /*call removeProcQ*/
+		removeProcQ(&temp); /*call removeProcQ*/
 	}
 
 	/******* located at the tail *********/
@@ -158,7 +171,7 @@ pcb_t *outProcQ (pcb_t**tp, pcb_t*p){
 		temp->p_next=(*tp)->p_next;
 		(*tp)->p_prev = NULL;
 		(*tp)->p_next = NULL;
-		temp = tp; /*temp is now the tp*/
+		tp = temp; /*temp is now the tp*/
 		return p;
 	}
 

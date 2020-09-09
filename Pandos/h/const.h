@@ -11,8 +11,8 @@
 #define PAGESIZE		  4096			/* page size in bytes	*/
 #define WORDLEN			  4				  /* word size in bytes	*/
 #define MAXPROC			 20
-#define pcb_PTR			pcb_t *
-#define semd_t 			semd_t *
+#define pcb_PTR			pcb_t*
+#define semd_PTR		semd_t*
 
 
 /* timer, timescale, TOD-LO and other bus regs */
