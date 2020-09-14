@@ -7,15 +7,13 @@
 
 /*global pointer for free list*/
 HIDDEN pcb_t *pcbfree_h;
-HIDDEN int debugg = 0; 
 
 /********************Allocation and Deallocation*****************/
-int debugA(int a){
+void debugA(int a){
 
 	/*a simple debug function to help fix our mistakes*/
 
-	int i;
-	i = 0; 
+	int i = 0; 
 
 }/* debugA */
 
@@ -34,6 +32,7 @@ void initPcbs(){
 void freePcb (pcb_t*p){
 
 	insertProcQ(&pcbfree_h,p);
+	/*debugA(1);*/
 
 }/*freePcb*/
 
@@ -42,12 +41,12 @@ pcb_t* allocPcb (){
 
 	/*check to see if the pcbfree list is empty*/ 
 	if (pcbfree_h == (NULL)){
-		debugA(1);
+		/*debugA(1);*/
 		return NULL;
 } /*set the pcb and give it's information
 
 	/make sure it's not being used*/
-	debugA(debugg);
+	/*debugA(debugg);*/
 
 	pcb_t *p = removeProcQ(&pcbfree_h); /* that pcb is empty*/ 
 
@@ -60,8 +59,9 @@ pcb_t* allocPcb (){
 	p->p_sib = NULL;
 	p->p_prevSib = NULL; 
 
-	debugg++; 
+	/*debugg++;*/ 
 	return p; 
+
 } /*allocPcb*/
 
 
@@ -100,100 +100,96 @@ void insertProcQ (pcb_t**tp, pcb_t*p){
 		p->p_next = p;
 		p->p_prev = p; 
 		(*tp)=p; 
-		
+		/*debugA(1);*/
 	}
 		/*N -> N+1*/
 
-		p->p_next = (*tp)->p_next; 
+	/*debugA(debugg);*/
 
-		(*tp)->p_next = p;
+	p->p_next = (*tp)->p_next; 
 
-		p->p_prev = (*tp);
+	(*tp)->p_next = p;
 
-		(*tp)->p_next->p_prev = p; 
+	p->p_prev = (*tp);
 
-		(*tp) = p;
+	(*tp)->p_next->p_prev = p; 
 
+	(*tp) = p;
+
+	/*debugg++;*/
 }/* insertProcQ */
 
 pcb_t *removeProcQ (pcb_t**tp){
 	/*removes the head element from the process queue whose tail pointer is pointed to by tp
 	Return NULL if the provess queue was empty. Otherwise return the pointer that was removed */
 
-	pcb_t *temp = (*tp)->p_next; 
-
-	if(emptyProcQ(*tp)){
-		return *tp; 
+	if(emptyProcQ(*tp) == TRUE){
+		return NULL;
 	} 
 
+	pcb_t *temp = (*tp)->p_next; 
+
+	
 	if(temp == (*tp)){ 
 		/*If the only one in the queue */
-
 		/*set the whole thing to NULL*/
 		(*tp)->p_prev = NULL; 
 		(*tp)->p_next = NULL;
 		(*tp) = (NULL); 
-		return (*tp)->p_next; 
+		return temp; 
 	}
 
-	/******** What if I am not the only one in the queue******/
-
+	/******** What if I am not the only one in the queue******/	
 	(*tp)->p_next = temp->p_next;
-	(*tp)->p_next->p_prev = (*tp);
+	temp->p_next->p_prev = (*tp);
 	temp->p_next = NULL;
 	temp->p_prev = NULL;
+	return temp; 
 
 }/*removeProcQ*/
 
 pcb_t *outProcQ (pcb_t**tp, pcb_t*p){
 	/*remove pcb pointed to by p from the process queue whose tail pointer is pointed to by tp.
 	Update the Process Queue. If not there return NULL. Otherwise return p*/
-	pcb_t *temp;
-	pcb_t *head = (*tp)->p_next; 
 
 	/*if the tree is actually empty */
 	if(emptyProcQ(*tp)){
 		return NULL;
 	}
 
+	debugA(1);
+	pcb_t *temp = (*tp)->p_next; 
+
 	/****** What if i am the only node *****/
 
-	if(head == temp){ /*if I am the head node and what you are looking for */
-		removeProcQ(&temp); /*call removeProcQ*/
+	if(temp == p){ /*if I am the head node and what you are looking for */
+		removeProcQ(tp); /*call removeProcQ*/
 	}
 
-	/******* located at the tail *********/
-	if ((*tp)->p_next->p_prev == p){
-		/* if tp is the pointer*/
-		temp = (*tp)->p_prev;
-
-		(*tp)->p_next->p_prev = temp;
-		temp->p_next=(*tp)->p_next;
-		(*tp)->p_prev = NULL;
-		(*tp)->p_next = NULL;
-		tp = temp; /*temp is now the tp*/
-		return p;
-	}
 
 	/******* located in the middle *********/
 	/*traverse the list*/
-	if(temp != p){/*if temp is not p*/
+	int i;
 
-		/*transverse through the list*/
-		temp->p_next->p_prev = temp->p_prev;
-		temp->p_prev->p_next = temp->p_next;
+	for(i = 0; i<MAXPROC; i++){
+		if(temp != p){/*if temp is not p*/
+		temp = temp->p_next;
+		continue;
+		}
 
 		/*find p*/
 		if(temp  == p){
-			temp->p_next = temp->p_prev;
-			temp->p_next = NULL; 
-			temp->p_prev = NULL;
-			temp = p;
+			pcb_t *next = temp->p_next;
+			pcb_t *back = temp->p_prev;
+			next->p_prev = back; 
+			back->p_next = next;
+
+			p->p_next = NULL; 
+			p->p_prev = NULL;
 			return p;
 		}
 
 	}
-
 	/*Return */
 	return NULL; 
 }
