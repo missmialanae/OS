@@ -3,4 +3,4 @@ allocPcb ok
 freed 10 entries   
 Inserting...   
 inserted 10 elements   
-kernel panic()
+outProcQ failed on middle entry   

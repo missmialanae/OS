@@ -100,6 +100,8 @@ void insertProcQ (pcb_t**tp, pcb_t*p){
 		p->p_next = p;
 		p->p_prev = p; 
 		(*tp)=p; 
+
+		return;
 		/*debugA(1);*/
 	}
 		/*N -> N+1*/
@@ -124,7 +126,12 @@ pcb_t *removeProcQ (pcb_t**tp){
 	Return NULL if the provess queue was empty. Otherwise return the pointer that was removed */
 
 	if(emptyProcQ(*tp) == TRUE){
+
+		debugA (1);
+
 		return NULL;
+
+
 	} 
 
 	pcb_t *temp = (*tp)->p_next; 
@@ -133,9 +140,12 @@ pcb_t *removeProcQ (pcb_t**tp){
 	if(temp == (*tp)){ 
 		/*If the only one in the queue */
 		/*set the whole thing to NULL*/
-		(*tp)->p_prev = NULL; 
+
 		(*tp)->p_next = NULL;
-		(*tp) = (NULL); 
+		(*tp)->p_prev = NULL; 
+		(*tp)= (NULL); 
+
+
 		return temp; 
 	}
 
@@ -144,12 +154,13 @@ pcb_t *removeProcQ (pcb_t**tp){
 	temp->p_next->p_prev = (*tp);
 	temp->p_next = NULL;
 	temp->p_prev = NULL;
+
 	return temp; 
 
 }/*removeProcQ*/
 
 pcb_t *outProcQ (pcb_t**tp, pcb_t*p){
-	/*remove pcb pointed to by p from the process queue whose tail pointer is pointed to by tp.
+	/*remove pcb pointed to by p from the process queue whose tp is pointed to by tp.
 	Update the Process Queue. If not there return NULL. Otherwise return p*/
 
 	/*if the tree is actually empty */
@@ -157,36 +168,48 @@ pcb_t *outProcQ (pcb_t**tp, pcb_t*p){
 		return NULL;
 	}
 
-	debugA(1);
 	pcb_t *temp = (*tp)->p_next; 
 
 	/****** What if i am the only node *****/
 
 	if(temp == p){ /*if I am the head node and what you are looking for */
-		removeProcQ(tp); /*call removeProcQ*/
-	}
+		removeProcQ(p); /*call removeProcQ */
 
+
+		return temp;
+	}
 
 	/******* located in the middle *********/
 	/*traverse the list*/
 	int i;
 
 	for(i = 0; i<MAXPROC; i++){
+
 		if(temp != p){/*if temp is not p*/
+
 		temp = temp->p_next;
-		continue;
+
+		debugA(1);
+
 		}
 
 		/*find p*/
-		if(temp  == p){
+
+		debugA(2);
+		if(temp == p){
+
+			debugA(3);
+
 			pcb_t *next = temp->p_next;
 			pcb_t *back = temp->p_prev;
 			next->p_prev = back; 
 			back->p_next = next;
 
-			p->p_next = NULL; 
-			p->p_prev = NULL;
-			return p;
+			temp->p_next = NULL; 
+			temp->p_prev = NULL;
+
+			debugA(4);
+			return temp;
 		}
 
 	}
