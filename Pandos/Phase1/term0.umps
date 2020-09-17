@@ -3,4 +3,6 @@ allocPcb ok
 freed 10 entries   
 Inserting...   
 inserted 10 elements   
-outProcQ failed on middle entry   
+outProcQ ok   
+Removing...   
+removeProcQ: failed on last entry   

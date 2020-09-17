@@ -9,11 +9,12 @@
 HIDDEN pcb_t *pcbfree_h;
 
 /********************Allocation and Deallocation*****************/
-void debugA(int a){
+void debugA(int a, pcb_t *t, pcb_t * h, pcb_t * c){
 
 	/*a simple debug function to help fix our mistakes*/
 
 	int i = 0; 
+
 
 }/* debugA */
 
@@ -99,10 +100,10 @@ void insertProcQ (pcb_t**tp, pcb_t*p){
 		/*if the list is empty set the new p as the tp*/
 		p->p_next = p;
 		p->p_prev = p; 
-		(*tp)=p; 
+		(*tp)=p;
 
+		debugA(10, *tp, p, *tp);
 		return;
-		/*debugA(1);*/
 	}
 		/*N -> N+1*/
 
@@ -118,6 +119,7 @@ void insertProcQ (pcb_t**tp, pcb_t*p){
 
 	(*tp) = p;
 
+	debugA(11, p->p_prev, p, p->p_prev);
 	/*debugg++;*/
 }/* insertProcQ */
 
@@ -125,13 +127,11 @@ pcb_t *removeProcQ (pcb_t**tp){
 	/*removes the head element from the process queue whose tail pointer is pointed to by tp
 	Return NULL if the provess queue was empty. Otherwise return the pointer that was removed */
 
+
+
 	if(emptyProcQ(*tp) == TRUE){
 
-		debugA (1);
-
 		return NULL;
-
-
 	} 
 
 	pcb_t *temp = (*tp)->p_next; 
@@ -145,15 +145,20 @@ pcb_t *removeProcQ (pcb_t**tp){
 		(*tp)->p_prev = NULL; 
 		(*tp)= (NULL); 
 
-
+		debugA(20, temp, temp, temp);
 		return temp; 
 	}
 
 	/******** What if I am not the only one in the queue******/	
-	(*tp)->p_next = temp->p_next;
-	temp->p_next->p_prev = (*tp);
+
+	pcb_t *head = temp->p_next;
+
+	(*tp)->p_next = head;
+	head->p_prev = (*tp);
 	temp->p_next = NULL;
 	temp->p_prev = NULL;
+
+	debugA(21, temp, (*tp), (*tp)->p_prev);
 
 	return temp; 
 
@@ -163,59 +168,59 @@ pcb_t *outProcQ (pcb_t**tp, pcb_t*p){
 	/*remove pcb pointed to by p from the process queue whose tp is pointed to by tp.
 	Update the Process Queue. If not there return NULL. Otherwise return p*/
 
+	int i; 
+
 	/*if the tree is actually empty */
 	if(emptyProcQ(*tp)){
 		return NULL;
 	}
 
-	pcb_t *temp = (*tp)->p_next; 
+	pcb_t *temp = (*tp)->p_next;
 
-	/****** What if i am the only node *****/
+	if(temp == p){
 
-	if(temp == p){ /*if I am the head node and what you are looking for */
-		removeProcQ(p); /*call removeProcQ */
-
-
-		return temp;
+		return removeProcQ(tp); 
 	}
+	
+	/*while(temp != p){
 
-	/******* located in the middle *********/
-	/*traverse the list*/
-	int i;
+		debugA(1, temp, p, tp);
+		temp = temp->p_next; 
+	} */
 
-	for(i = 0; i<MAXPROC; i++){
-
-		if(temp != p){/*if temp is not p*/
+	for(i=0; i <MAXPROC; i++){
+		if(temp != p){
 
 		temp = temp->p_next;
 
-		debugA(1);
+		continue; 
 
 		}
 
-		/*find p*/
 
-		debugA(2);
 		if(temp == p){
-
-			debugA(3);
+			debugA(2, temp, p, tp);
 
 			pcb_t *next = temp->p_next;
 			pcb_t *back = temp->p_prev;
-			next->p_prev = back; 
+
+			next->p_prev = back;
 			back->p_next = next;
 
-			temp->p_next = NULL; 
+			temp->p_next = NULL;
 			temp->p_prev = NULL;
 
-			debugA(4);
-			return temp;
+			debugA(3, temp, p, *tp);
+			return p; 
 		}
-
 	}
-	/*Return */
-	return NULL; 
+
+	debugA(4, temp, p, *tp);
+	return (NULL);
+
 }
+
+
 
 /*********************** PROCESS TREE MAINTENANCE ***********************/
 
