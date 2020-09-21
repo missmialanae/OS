@@ -11,12 +11,18 @@ HIDDEN pcb_t *pcbfree_h;
 /********************Allocation and Deallocation*****************/
 void debugA(int a, pcb_t *t, pcb_t * h, pcb_t * c){
 
-	/*a simple debug function to help fix our mistakes*/
+	/*a debug function */
 
 	int i = 0; 
 
 
 }/* debugA */
+
+void debugB(int a){
+	/*quick and simple debug statement to show errors quicker*/
+
+	int i = 0; 
+}
 
 void initPcbs(){
 	int i; 
@@ -33,8 +39,6 @@ void initPcbs(){
 void freePcb (pcb_t*p){
 
 	insertProcQ(&pcbfree_h,p);
-	/*debugA(1);*/
-
 }/*freePcb*/
 
 pcb_t* allocPcb (){
@@ -42,12 +46,10 @@ pcb_t* allocPcb (){
 
 	/*check to see if the pcbfree list is empty*/ 
 	if (pcbfree_h == (NULL)){
-		/*debugA(1);*/
 		return NULL;
 } /*set the pcb and give it's information
 
 	/make sure it's not being used*/
-	/*debugA(debugg);*/
 
 	pcb_t *p = removeProcQ(&pcbfree_h); /* that pcb is empty*/ 
 
@@ -59,8 +61,6 @@ pcb_t* allocPcb (){
 	p->p_child = NULL;
 	p->p_sib = NULL;
 	p->p_prevSib = NULL; 
-
-	/*debugg++;*/ 
 	return p; 
 
 } /*allocPcb*/
@@ -102,12 +102,9 @@ void insertProcQ (pcb_t**tp, pcb_t*p){
 		p->p_prev = p; 
 		(*tp)=p;
 
-		debugA(10, *tp, p, *tp);
 		return;
 	}
 		/*N -> N+1*/
-
-	/*debugA(debugg);*/
 
 	p->p_next = (*tp)->p_next; 
 
@@ -115,12 +112,10 @@ void insertProcQ (pcb_t**tp, pcb_t*p){
 
 	p->p_prev = (*tp);
 
-	(*tp)->p_next->p_prev = p; 
+	p->p_next->p_prev = p; 
 
 	(*tp) = p;
 
-	debugA(11, p->p_prev, p, p->p_prev);
-	/*debugg++;*/
 }/* insertProcQ */
 
 pcb_t *removeProcQ (pcb_t**tp){
@@ -134,33 +129,30 @@ pcb_t *removeProcQ (pcb_t**tp){
 		return NULL;
 	} 
 
-	pcb_t *temp = (*tp)->p_next; 
+	debugB(19);
 
-	
-	if(temp == (*tp)){ 
-		/*If the only one in the queue */
-		/*set the whole thing to NULL*/
+	pcb_t *head = (*tp)->p_next; 
+	pcb_t *newHead = head->p_next;
 
-		(*tp)->p_next = NULL;
-		(*tp)->p_prev = NULL; 
-		(*tp)= (NULL); 
 
-		debugA(20, temp, temp, temp);
-		return temp; 
+	if((*tp)->p_next != (*tp)){ 
+
+		(*tp)->p_next = newHead;
+		newHead->p_prev = (*tp);
+		head->p_next = NULL;
+		head->p_prev = NULL;
+		debugB(21);
+
+		return head; 
 	}
 
 	/******** What if I am not the only one in the queue******/	
 
-	pcb_t *head = temp->p_next;
-
-	(*tp)->p_next = head;
-	head->p_prev = (*tp);
-	temp->p_next = NULL;
-	temp->p_prev = NULL;
-
-	debugA(21, temp, (*tp), (*tp)->p_prev);
-
-	return temp; 
+	debugB(20);
+	(*tp)->p_next = NULL;
+	(*tp)->p_prev = NULL;
+	(*tp) = NULL;
+	return head;
 
 }/*removeProcQ*/
 
@@ -179,14 +171,10 @@ pcb_t *outProcQ (pcb_t**tp, pcb_t*p){
 
 	if(temp == p){
 
+		debugA(2, temp, (*tp), (*tp)->p_prev);
+
 		return removeProcQ(tp); 
 	}
-	
-	/*while(temp != p){
-
-		debugA(1, temp, p, tp);
-		temp = temp->p_next; 
-	} */
 
 	for(i=0; i <MAXPROC; i++){
 		if(temp != p){
@@ -194,12 +182,9 @@ pcb_t *outProcQ (pcb_t**tp, pcb_t*p){
 		temp = temp->p_next;
 
 		continue; 
-
 		}
 
-
 		if(temp == p){
-			debugA(2, temp, p, tp);
 
 			pcb_t *next = temp->p_next;
 			pcb_t *back = temp->p_prev;
@@ -209,24 +194,19 @@ pcb_t *outProcQ (pcb_t**tp, pcb_t*p){
 
 			temp->p_next = NULL;
 			temp->p_prev = NULL;
-
-			debugA(3, temp, p, *tp);
 			return p; 
 		}
 	}
 
-	debugA(4, temp, p, *tp);
 	return (NULL);
 
 }
-
-
 
 /*********************** PROCESS TREE MAINTENANCE ***********************/
 
 int emptyChild(pcb_t*p){
 	/*return a true value if the pcb pointed to by p has no children*/
-	return (p == NULL);
+	return (p->p_child == NULL);
 }/*emptyChild*/
 
 void insertChild(pcb_t*prnt, pcb_t*p){
