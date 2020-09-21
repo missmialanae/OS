@@ -21,19 +21,21 @@ void initASL(){
 	int i;
 
 	static semd_t semdTable[MAXPROC+2]; /*plus 2 for the dummy nodes*/ 
-	semdFree_h = & semdTable [0]; 
-	semd_h->s_procQ = mkEmptyProcQ();
-	semd_h->s_next == NULL;
-	semd_h->s_semAdd == NULL; 
-	semd_h = &semdTable[MAXPROC];
+	semdFree_h = &semdTable[0]; 
 
 	for (i=1; i< MAXPROC; i++){
-		semdTable[i-1].s_next = NULL;
-		semd_h->s_semAdd = 0;
-		semd_h->s_next->s_semAdd = 21;
-		semd_h->s_procQ = mkEmptyProcQ();
-		semd_h->s_next->s_semAdd = mkEmptyProcQ;
+		semdTable[i-1].s_next = &semdTable[i];
 	}
+
+	semdTable[MAXPROC - 1].s_next = NULL; 
+	semd_h = &semdTable[MAXPROC];
+	semd_h->s_semAdd = 0;
+	semd_h->s_procQ = mkEmptyProcQ();
+	semd_h->s_next = &semdTable[MAXPROC+1];
+	semd_h->s_next->s_semAdd = MAXINT; 
+	semd_h->s_next->s_procQ = mkEmptyProcQ(); 
+	semd_h->s_next->s_next = NULL; 
+	
 }
 
 int insertBlocked(int *semAdd, pcb_t *p){
@@ -46,11 +48,11 @@ int insertBlocked(int *semAdd, pcb_t *p){
 	semd_t *temp = findsem(semAdd); /* finding the semaddress*/
 	if(temp->s_next->s_semAdd == semAdd){
 		insertProcQ(&(temp->s_procQ),p);
-		return p; 
+		return FALSE; 
 	}
 
 	if(semdFree_h == NULL){
-		return NULL; /*list is empty*/
+		return TRUE; /*list is empty*/
 	}
 	semd_t *newSem = semdFree_h;
 	semdFree_h = newSem->s_next;
@@ -60,7 +62,7 @@ int insertBlocked(int *semAdd, pcb_t *p){
 	temp->s_next = newSem->s_next;
 	temp->s_next = newSem;
 	insertProcQ(newSem->s_procQ,p);
-	return newSem; 
+	return /*TRUE OR FALSE*/; 
 }
 
 pcb_t *removeBlocked(int *semAdd){
@@ -119,19 +121,12 @@ pcb_t *headBlocked(int *semAdd){
 
 int findsem(int *semAdd){
 
-	/*dummy nodes */
-	semd_t *temp = semd_h; 
+	semd_t *temp = semd_h;
 
-	if(temp->s_next->s_semAdd < semAdd ){/* temp doesn't have the semAdd*/
-		temp = temp->s_next; /*run through the list */
+	while(temp->s_next->s_semAdd < semAdd){
+		temp = temp->s_next;
 	}
 
-	/*if you find the semAdd*/
-
-	temp->s_semAdd = semAdd; /* if you find semAdd*/
-	return(temp); /*return the temp*/ 
-
-	return NULL; /*semAdd is not there */
+	return temp; 
 }
-
 /***************END***********************/

@@ -14,4 +14,5 @@ outChild ok
 Removing...   
 insertChild, removeChild and emptyChild ok   
 process tree module ok      
-kernel panic()
+Initialized active semaphore list   
+insertBlocked test #1 started  
