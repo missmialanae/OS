@@ -215,13 +215,14 @@ void insertChild(pcb_t*prnt, pcb_t*p){
 	/*insert at the beggining for constant */
 
 	/*Check to see if the tree is empty */
-	if(emptyChild(p)){
-		return NULL;
-	}
+	if(emptyChild(prnt)){
 
-	/******* What if my parent has no children ****/
-	if(prnt->p_child == NULL){/* if my parent has no children*/
-		prnt->p_child = p; /* setting the parent to the child */
+		prnt->p_child = p;
+		p->p_prnt = prnt;
+		p->p_sib = NULL;
+		p->p_prevSib = NULL; 
+
+		return; 
 	}
 
 	/***** What if the parent has a child*****/
@@ -229,11 +230,15 @@ void insertChild(pcb_t*prnt, pcb_t*p){
 	/*have p point to the sibling*/
 	p->p_sib = prnt->p_child; 
 
+	prnt->p_child->p_prevSib = p; 
+
 	/*parent point to new child */
-	prnt->p_prnt = p; 
+	prnt->p_child = p; 
 
 	/*have new child point to new parent */
 	p->p_prnt = prnt;
+
+	return; 
 
 }
 	
@@ -242,47 +247,62 @@ pcb_t *removeChild (pcb_t*p){
 	/*we are given a parent from top */
 
 	if(emptyChild(p)){ /*if tree is empty, return null*/
-	return NULL;
+		return NULL;
 	}
 
 	if(p->p_child->p_sib == NULL){ /*there is only one child*/
-		p->p_child = NULL; 
-		p->p_prnt->p_child = NULL; 
+
+		pcb_t *child = p->p_child; 
+
+		child->p_prnt = NULL; 
+		p->p_child = NULL;
+
+		return child; 
 	}
 
 	/*setting dummhy nodes to prevent confusion*/
 	pcb_t *oldChild = p->p_child;
-	pcb_t *parent = oldChild->p_prnt;
 	pcb_t *newChild = oldChild->p_sib;
 
 	/*stops next sib from pointing*/
-	newChild->p_sib = NULL;
+	newChild->p_prevSib = NULL;
 	/*set parent first child as new sibling*/
-	parent->p_sib = newChild;
+	p->p_child = newChild;
 	/*make p have no siblings*/
 	oldChild->p_sib = NULL;
 	oldChild->p_prnt = NULL; 
 
-	return newChild; 
+	return oldChild; 
 
 } /*removeChild*/
 
 pcb_t *outChild(pcb_t*p){
 	/*make the pcb pointed to by p no longer the child of its parent*/
-
-	pcb_t *parent = p->p_prnt; /*setting a dummy node for parent*/
-	pcb_t *child = parent ->p_child; /*a place holder for the child*/
-
-	if(emptyChild(p)){ /*checks if tree is empty */
+	if(p == NULL){ /*checks if p points to anything */
  		return NULL;
  	}
 
+ 	if(p->p_prnt == NULL){
+ 		return NULL;
+ 	}
+
+	pcb_t *parent = p->p_prnt; /*setting a dummy node for parent*/
  	/********* You are the child ********/
- 	if(p->p_prnt == p){
- 		removeChild(p);
+ 	if(p->p_prnt->p_child == p){
+ 		return(removeChild(parent));
  	}
 
  	/*** Not the first child ****/
+
+ 	/*end child */
+
+ 	if(p->p_sib == NULL){
+
+ 		p->p_prnt = NULL;
+ 		p->p_prevSib->p_sib = NULL;
+ 		p->p_prevSib = NULL;
+ 		return p;
+ 	}
 
  	/*middle child */
 
@@ -290,12 +310,14 @@ pcb_t *outChild(pcb_t*p){
  	p->p_prnt = NULL; 
 
  	/*make child point to new sibling */
- 	child->p_sib = p->p_sib;
+ 	p->p_prevSib->p_sib = p->p_sib;
+ 	p->p_sib->p_prevSib = p->p_prevSib; 
 
  	/*remove the sibling from p*/
  	p->p_sib = NULL; 
+ 	p->p_prevSib = NULL;
 
- 	return outChild(p);
+ 	return p;
 
 }/* outChild*/
 
