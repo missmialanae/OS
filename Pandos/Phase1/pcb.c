@@ -129,8 +129,6 @@ pcb_t *removeProcQ (pcb_t**tp){
 		return NULL;
 	} 
 
-	debugB(19);
-
 	pcb_t *head = (*tp)->p_next; 
 	pcb_t *newHead = head->p_next;
 
@@ -141,14 +139,12 @@ pcb_t *removeProcQ (pcb_t**tp){
 		newHead->p_prev = (*tp);
 		head->p_next = NULL;
 		head->p_prev = NULL;
-		debugB(21);
 
 		return head; 
 	}
 
 	/******** What if I am not the only one in the queue******/	
 
-	debugB(20);
 	(*tp)->p_next = NULL;
 	(*tp)->p_prev = NULL;
 	(*tp) = NULL;
@@ -171,12 +167,11 @@ pcb_t *outProcQ (pcb_t**tp, pcb_t*p){
 
 	if(temp == p){
 
-		debugA(2, temp, (*tp), (*tp)->p_prev);
-
 		return removeProcQ(tp); 
 	}
 
 	for(i=0; i <MAXPROC; i++){
+		
 		if(temp != p){
 
 		temp = temp->p_next;
