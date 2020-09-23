@@ -5,16 +5,21 @@
 #include "../h/pcb.h"
 #include "../h/asl.h"
 
+/**************************************************************************** 
+ * 
+ *	This file contains all methods and instructions for PCB and Trees 
+ *	Processing (Child)
+ * 
+ ****************************************************************************/
+
 /*global pointer for free list*/
 HIDDEN pcb_t *pcbfree_h;
 
-/********************Allocation and Deallocation*****************/
+/**********************DEBUG FUNCTIONS CREATED BY US ************/
 void debugA(int a, pcb_t *t, pcb_t * h, pcb_t * c){
-
 	/*a debug function */
 
 	int i = 0; 
-
 
 }/* debugA */
 
@@ -22,9 +27,14 @@ void debugB(int a){
 	/*quick and simple debug statement to show errors quicker*/
 
 	int i = 0; 
-}
+}/* debugB */
+
+/********************Allocation and Deallocation*****************/
 
 void initPcbs(){
+	/*Initialize the PCBFree list to contain all the elements 
+	of MAXPROC in an queue array. Called only once */
+
 	int i; 
 
 	pcbfree_h = mkEmptyProcQ();
@@ -74,14 +84,15 @@ pcb_t *mkEmptyProcQ(){
 } /*mkemptyProcq*/
 
 int emptyProcQ (pcb_t *tp){
-	/*returns a boolean value whether the queeue is empty or not */
+	/*returns a boolean value whether the queue is empty or not. Returns true if it is empty; 
+	false if the queue is not */
 	return (tp == (NULL));
 
 }/*emptyProcQ*/
 
 pcb_t *headProcQ(pcb_t *tp){
+	/*returns the head pcb in the queue pointed to by tp*/
 
-	/*returns the head pcb in the queue*/
 	if(emptyProcQ(tp)){
 
 		return NULL; 
@@ -94,7 +105,8 @@ pcb_t *headProcQ(pcb_t *tp){
 }/*headProcQ*/
 
 void insertProcQ (pcb_t**tp, pcb_t*p){
-	/*inserts a new element into the queue*/
+	/*inserts a new element into the queue. PCB pointed to by p is put into queue at tp. 
+	Becomes the new head*/
 
 	if(emptyProcQ(*tp)==TRUE){
 		/*if the list is empty set the new p as the tp*/
@@ -195,13 +207,14 @@ pcb_t *outProcQ (pcb_t**tp, pcb_t*p){
 
 	return (NULL);
 
-}
+}/*outProcQ*/
 
 /*********************** PROCESS TREE MAINTENANCE ***********************/
 
 int emptyChild(pcb_t*p){
 	/*return a true value if the pcb pointed to by p has no children*/
 	return (p->p_child == NULL);
+
 }/*emptyChild*/
 
 void insertChild(pcb_t*prnt, pcb_t*p){
@@ -235,7 +248,7 @@ void insertChild(pcb_t*prnt, pcb_t*p){
 
 	return; 
 
-}
+}/*insetChild*/
 	
 
 pcb_t *removeChild (pcb_t*p){
