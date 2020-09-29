@@ -13,6 +13,7 @@
 #define MAXPROC			 20
 #define pcb_PTR			pcb_t*
 #define semd_PTR		semd_t*
+#define MAXINT          0xFFFFFFFF
 
 
 /* timer, timescale, TOD-LO and other bus regs */
