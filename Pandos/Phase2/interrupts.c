@@ -11,7 +11,13 @@
  * 
  * This file contains all methods and instruction for interrupts. This file 
  * controls context switches and deals with the mapping of all the devices
- * through 
+ * through. Deals with Non-timer interrupts, PLT interrupts, the system wide 
+ * interval timer and pseudoclock
  * 
  *
  ********************************************************************************/
+
+/******************************** PROGRAM TRAP **********************************/
+/* if( in user mode){
+	perform pass up and die
+} */

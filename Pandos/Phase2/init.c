@@ -24,10 +24,10 @@ int processcnt;
 int softblock;
 
 /*ready queue*/
-pcb_t readyQueue;
+pcb_t *readyQueue;
 
 /*setting current process */
-pcb_t currentproc; 
+pcb_t *currentproc; 
 
 /*device semaphores */
 int devices[i]; 
@@ -54,10 +54,10 @@ int main(){
 	int softblock = 0;
 
 	/*ready queue*/
-	pcb_t readyqueue = mkemptyProc();
+	pcb_t *readyqueue = mkemptyProc();
 
 	/*setting current process */
-	pcb_t currentproc = NULL; 
+	pcb_t *currentproc = NULL; 
 
 	/*device semaphores */
 	int devices[i] = 0; 
@@ -65,7 +65,7 @@ int main(){
 /******************** END OF DECLARE OF NUCLEUS VARIABLES ********************/
 
 /******************** LOAD INTERVAL TIMER ************************************/
-
+	LDIT()
 /******************** END OF DECLARE OF INTERVAL TIMER ***********************/
 
 /******************** INSTANTIATE SINGLE PROCESS *****************************/

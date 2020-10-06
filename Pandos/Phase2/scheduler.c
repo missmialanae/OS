@@ -14,5 +14,36 @@
  * Current Process. 
  *
  ********************************************************************************/
+/*first want to check if the readyqueue is empty*/
+
+if(emptyProcQ(&readyqueue)){
+	if (processcnt = 0){
+		/*invoke the HALT BIOS and you are done*/
+	}
+
+	if(processcnt > 0 && softblock > 0){
+		/*enter a wait state which is supported */
+	}
+
+	if(processcnt > 0 && softblock = 0){
+		/*deadlock*/
+		/*dedlock detected*/
+		/*invoke PANIC BIOS*/
+	}
+}
+
+/* if the ready queue is not ready */
+
+/*remove the pcb from the head of the Ready queue*/
+
+/*store the pointer to current process*/
+pcb_t currentproc = head of the ready queue;
+
+/*load 5 miliseconds to the PLT */
+
+/*perform LDST on the processor state stored in the pcb of the current process*/
+LDST(currentproc->s_status); 
+
+
 
 
