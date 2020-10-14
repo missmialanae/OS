@@ -14,6 +14,10 @@
  * Current Process. 
  *
  ********************************************************************************/
+/*external fucntions*/
+
+extern void moveState();
+
 /*first want to check if the readyqueue is empty*/
 
 if(emptyProcQ(&readyqueue)){

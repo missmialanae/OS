@@ -16,6 +16,14 @@
 
 /******************** DECLARE OF GLOBAL VARIABLES ******************************/
 
+/* methods mikey said we needed; put in .h */
+
+extern void uTLB RefillHandler();
+extern void test();
+extern void GenExceptionHander();
+
+/*I/O state saverarea*/
+unsigned int devStat[DEVICECNT + DEVPERINT];
 
 /*Process Count*/
 int processcnt;
@@ -30,32 +38,38 @@ pcb_t *readyQueue;
 pcb_t *currentproc; 
 
 /*device semaphores */
-int devices[i]; 
+int devices[DEVICECNT + DEVPERINT + 1];
 
-/* methods mikey said we needed */
+/*time unit*/
+cpu_t startTOD;
 
-extern void uTLB RefillHandler();
-extern void test();
+/*amt till time slice*/
+cpu_t sliceCount; /*do I need this now*/
+
 
 int main(){
 
-/******************** END OF DECLARE OF GLOBAL VARIABLES *********************/
+	int i; 
+	pcb_t *ram = allocPcb();
+	unsigned int RAMTOP; /*something for the ram*/
+
+
+	/*RAMTOP set up*/
+	RAMTOP(topofRAM);
+	if(ram != NULL);
+	ram->p_s.s_status = ALLOFF | IEPON | IMON | TEBITONL;
+	ram->p_s.s_sp = topofRAM;
 
 /******************** PASS UP VECTOR *****************************************/
-	void passUpVector(){
-	                     /*populate processor 0 pass up vector*/
-	                     /*processor 0 is located at 0x0FFF.F900*/
-
-	}
-
-
-/******************** END OF PASS UP VECTOR **********************************/
+	passup =(passupvector_t *)PASSUPVECTOR;
+	passup->tlb_refill_handler = (memaddr) uTLB_refill;
+	passup->tlb_refill_stackPTR = KERNALSTACK;
+	passup->exception_handler = (memaddr)_genException; 
+	passup->exception_stackPTR = KENERALSTACK;
 
 /******************** INITALIZATION OF PHASE 1 *******************************/
 	initPCB();
 	initASL(); 
-
-/******************** END OF INITALIZATION OF PHASE 1 ***********************/
 
 /******************** INITALIZATION OF NUCLEUS VARIABLES *********************/
 	/*Process Count*/
@@ -70,14 +84,11 @@ int main(){
 	/*setting current process */
 	pcb_t *currentproc = NULL; 
 
-	/*device semaphores */
-	int devices[i] = 0; 
-
-/******************** END OF DECLARE OF NUCLEUS VARIABLES ********************/
+	/*initialize I/O and clock semaphores*/
 
 /******************** LOAD INTERVAL TIMER ************************************/
 
-	intervalTimer = 100; /*set interval time to 100 milliseconds*/
+	LDIT(); /*set interval time to 100 milliseconds*/
 
 /******************** END OF DECLARE OF INTERVAL TIMER ***********************/
 
@@ -122,7 +133,10 @@ int main(){
 
 /******************** GenExceptionHandler() **********************************************/
 /*looks at the cause register (stored by BIOS) and points to which syscall it is*/
-	void GenExceptionHandler(){
+	void GenExceptionHander(){
+		oldState(state_PTR)BIOSDATAPAGE;
+		exceptReason = (oldState-s_cause + GETEXECCOD) >>
+
 
 	}
 
