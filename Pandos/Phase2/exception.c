@@ -17,11 +17,12 @@ int mutex;
 /******************** SYS 1 *****************************************************/
 void CREATEPROCESS(state_t *statep, support_t * supportp, int v){
 
-	pcb_t *created; 
-
 	/*allocate a new pcb*/
+	pcb_t *created = allocPCB();
 
-	/*set the new pcb to be created*/
+	if(created == NULL){
+		LDST()
+	}
 
 	/*initiliaze the fields*/
 
@@ -32,11 +33,13 @@ void CREATEPROCESS(state_t *statep, support_t * supportp, int v){
 	/*process queue fields*/
 
 	/*NEED TO FIX THESE LATER*/
-	created->p_next = insertProcQ(); 
-	created->p_prev = insertProcQ(); 
+	cinsertProcQ(&readyQueue, created); 
 
 	/*process tree fields*/
 	created->p_child = insertChild(); 
+
+	/*time*/
+	created->p_time = 0; 
 
 	/*p_semADD is set to NULL*/
 	created -> p_semADD == NULL; 
