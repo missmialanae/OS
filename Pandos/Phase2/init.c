@@ -174,6 +174,6 @@ void GenExceptionHander(){
 	}
 
 	/*anything else*/
-	pgmTrapH
+	pgmTrapH();
 
 }

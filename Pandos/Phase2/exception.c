@@ -11,8 +11,29 @@
  *
  ********************************************************************************/
 
-/*initializing mutex */
-int mutex; 
+/*external functions*/
+extern void pgmTrapH();
+extern void tlbTrapH();
+extern void sysTrapH();
+
+void pgmTrapH(){
+	/*need to fill out*/
+	passUpOrDie(GENERALEXCEPT);
+}
+
+void tlbTrapH(){
+	/*need to fill out*/
+	passUpOrDie(PGFAULTEXCEPT);
+}
+
+void sysTrapH(){
+	int sys; /* current sys */
+	state_PTR state = (state_PTR)BIOSDATAPAGE;
+	cpu_t currentTime;
+
+	/*set the sys that we are getting*/
+	sys = state->s_a0;
+}
 
 /******************** SYS 1 *****************************************************/
 void CREATEPROCESS(state_t *statep, support_t * supportp, int v){

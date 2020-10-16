@@ -17,31 +17,64 @@
 /*external fucntions*/
 
 extern void moveState();
+extern void switch();
+extern void prep();
+extern void finalmsg(); /*do we need this*/
 
+void moveState(state_PTR source, state_PTR final){
+	int i; 
+
+	/*search through the states to find the prooper state*/
+	for(i=0; i < STATEREGNUM; i++){
+		final->s_reg[i] = source->s_reg[i]
+	}
+
+	/*once it is found set the source to the final*/
+	source->s_cause = final->s_cause;
+	source->entryHI = final->s_entryHI;
+	source->s_status = final->s_status;
+	source->s_pc = source ->s_pc;
+
+}
 /*first want to check if the readyqueue is empty*/
+void switch(){
 
-if(emptyProcQ(&readyqueue)){
-	if (processcnt = 0){
-		/*invoke the HALT BIOS and you are done*/
-		void HALT();
-	}
+	pcb_t *p;
+	pcb_t *currentproc;
 
-	if(processcnt > 0 && softblock > 0){
-		/*enter a wait state which is supported */
-
-		/*do I need to set and store the status*/ 
-
-		void WAIT(); 
+	if(p != null){
+		/*call prep*/
+		prep();
 
 	}
 
-	if(processcnt > 0 && softblock = 0){
-		/*deadlock*/
+	if(emptyProcQ(&readyqueue)){
+		if (processcnt = 0){
+			/*invoke the HALT BIOS and you are done*/
+			void HALT();
+		}
 
-		/*dedlock detected*/
+		if(processcnt > 0 && softblock > 0){
+			/*enter a wait state which is supported */
 
-		/*invoke PANIC BIOS*/
-		void PANIC(); 
+			currentproc == NULL;
+
+			/*do I need to set and store the status*/ 
+
+			/*need to load cpu timer with larger number to stop it */
+
+			void WAIT(); 
+
+		}
+
+		if(processcnt > 0 && softblock = 0){
+			/*deadlock*/
+
+			/*dedlock detected*/
+
+			/*invoke PANIC BIOS*/
+			void PANIC(); 
+		}
 	}
 }
 
