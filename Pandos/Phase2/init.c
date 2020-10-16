@@ -49,16 +49,6 @@ cpu_t sliceCount; /*do I need this now*/
 
 int main(){
 
-	int i; 
-	pcb_t *ram = allocPcb();
-	unsigned int RAMTOP; /*something for the ram*/
-
-
-	/*RAMTOP set up*/
-	RAMTOP(topofRAM);
-	if(ram != NULL);
-	ram->p_s.s_status = ALLOFF | IEPON | IMON | TEBITONL;
-	ram->p_s.s_sp = topofRAM;
 
 /******************** PASS UP VECTOR *****************************************/
 	passup =(passupvector_t *)PASSUPVECTOR;
@@ -86,37 +76,43 @@ int main(){
 
 	/*initialize I/O and clock semaphores*/
 
+	semClock = 0;
+	for(i = 0; i < DEVICECNT; i++){
+		devices[i] = 0;
+	}
+
 /******************** LOAD INTERVAL TIMER ************************************/
 
-	LDIT(); /*set interval time to 100 milliseconds*/
+	LDIT(5000); /*set interval time to 100 milliseconds*/
 
-/******************** END OF DECLARE OF INTERVAL TIMER ***********************/
 
 /******************** INSTANTIATE SINGLE PROCESS *****************************/
-/***stuff pandos tells us to do page 18*****/
+/***stuff pandos tells us to do page 18*****
 
-	pcb_t -> newPcb = allocPcb(); /**initiate process**/
+	Do I need this shit? I'm gonna ask Umang
+
+	pcb_t -> newPcb = allocPcb(); /**initiate process 
 
 
 	newPcb -> readyqueue; /**place its pcb in ready queue**/
 		
 
 	/*for loop to initiate a single purpose queue, place its pcb in ready queue 
-	and increment process count**/
+	and increment process count*
 
 		int i;
 
 		for(int i = 0; i < 49; i++){ 
-			/*yes, for loop serve me nothing*/
+			/*yes, for loop serve me nothing
 		}
 
 	  newPcb -> p_s.s_pc = (&(test));
 
-	  /**when we assign a value to pc we have to assign the same value to the gen pupose register t9 here**/
+	  /**when we assign a value to pc we have to assign the same value to the gen pupose register t9 here
 
-	  newPcb -> p_s.s_sp = RAMTOP;	/**enable kernal mode?**/
+	  newPcb -> p_s.s_sp = RAMTOP;	/**enable kernal mode?
 
-	/**set the previous bits**/
+	/**set the previous bits*
 
 	  newPcb -> p_s.s KUp = 0; 
 
@@ -124,24 +120,60 @@ int main(){
 
 	  newPcb -> p_time = 0;
 	 
-/******************** END OF INSTANTIATE SINGLE PROCESS **********************/
-	newPcb -> p_supportStruct = NULL;
+	newPcb -> p_supportStruct = NULL; */
 
 /******************** SCHEDULER **********************************************/
-	scheduler();
-/******************** END OF SCHEDULER ***************************************/
-
-/******************** GenExceptionHandler() **********************************************/
-/*looks at the cause register (stored by BIOS) and points to which syscall it is*/
-	void GenExceptionHander(){
-		oldState(state_PTR)BIOSDATAPAGE;
-		exceptReason = (oldState-s_cause + GETEXECCOD) >>
+	int i; 
+	pcb_t *ram = allocPcb();
+	unsigned int RAMTOP; /*something for the ram*/
 
 
+	/*RAMTOP set up*/
+	RAMTOP(topofRAM);
+	if(ram != NULL){
+		ram->p_s.s_pc = p->p_s.s_t9 = (memaddr)
+		ram->p_s.s_status = ALLOFF | IEPON | IMON | TEBITONL;
+		ram->p_s.s_sp = topofRAM; /*setting the stack pointer*/
+		processcnt += 1;
+		insertProcQ(&readyQueue, ram);
+
+		scheduler();
 	}
 
-/******************** END OF GenExceptionHandler() ***************************************/
+	else{
 
+		PANIC();
+	}
 
-/******************** END OF INIT.C ******************************************/
+	/*idk Mikey said so*/
+	return 0;
+}/*end of main*/
+
+/******************** GenExceptionHandler() **********************************************/
+
+void GenExceptionHander(){
+	/*looks at the cause register (stored by BIOS) and points to which syscall it is*/
+
+	/*variables*/
+	state_PTR state;
+	int reason;
+
+	/*setting the variables*/
+	oldState(state_PTR)BIOSDATAPAGE;
+	reason = (oldState-s_cause + GETEXECCOD) >> CAUSESHIFT;
+
+	/*if it is one of these send it to one of these*/
+	if(reason == IOINTERRUPTS){
+		int TrapH();
+	}
+	if (reason == TLB){
+		tlbTrapH();
+	}
+	if(reason == SYSEXCEPTION){
+		sysTrapH();
+	}
+
+	/*anything else*/
+	pgmTrapH
+
 }
