@@ -17,22 +17,32 @@ extern void tlbTrapH();
 extern void sysTrapH();
 
 void pgmTrapH(){
-	/*need to fill out*/
+	
 	passUpOrDie(GENERALEXCEPT);
 }
 
 void tlbTrapH(){
-	/*need to fill out*/
+	
 	passUpOrDie(PGFAULTEXCEPT);
 }
 
 void sysTrapH(){
+
 	int sys; /* current sys */
 	state_PTR state = (state_PTR)BIOSDATAPAGE;
 	cpu_t currentTime;
 
-	/*set the sys that we are getting*/
+	/*set the sys that we are getting and set it to */
 	sys = state->s_a0;
+
+	/*in user mode*/
+
+	/*not in user mode*/
+	moveState(state, &(currentproc->p_s)); /*storing the prco state*/
+
+	/*need to prevent the loop*/
+
+	currentproc->p_s.s_pc = currentproc->p_s.s_pc + 4;
 }
 
 /******************** SYS 1 *****************************************************/

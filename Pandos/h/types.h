@@ -89,6 +89,18 @@ typedef struct passupvector {
     unsigned int exception_stackPtr;
 } passupvector_t;
 
+typedef struct context_t {
+	unsigned int c_stackPtr,  /* stack pointer value*/
+				c_status,	  /* status reg value*/
+				c_pc; 		  /* PC address*/
+} context_t;
+
+typedef struct support_t{
+	int 		sup_asid; 				/*Process ID (asid)*/
+	state_t 	sup_exceptState[2]; 	/*stored except states*/
+	context_t 	sup_exceptContext[2]; 	/*pass up contexts*/
+} support_t; 
+
 
 #define	s_at	s_reg[0]
 #define	s_v0	s_reg[1]
