@@ -29,7 +29,7 @@ unsigned int devStat[DEVICECNT + DEVPERINT];
 int processcnt;
 
 /*Soft-block count*/
-int softblock;
+int softBlock;
 
 /*ready queue*/
 pcb_t *readyQueue;

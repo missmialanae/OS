@@ -183,7 +183,7 @@ void passeren(){
 	if(*sem < 0){
 
 		blockCurrent(&sem; currentproc);
-	
+
 		scheduler();
 	}
 	/*now another context switch*/
@@ -378,8 +378,9 @@ void removeProcess(pcb_t *proc){
 	and decreases the processcnt*/
 
 	/* recursively removes the process down
+
 	/*variables*/
-	pcb_t *temp;
+	/*pcb_t *temp;*/
 	int *sem; /*ptr to a semadd value*/
 
 	/*first you need to make sure it doesn't have a child*/
@@ -398,9 +399,10 @@ void removeProcess(pcb_t *proc){
 		outProcQ(&(readyQueue), proc);
 	}
 
-	/*need to update the softBlocked count and don't V*/
-	if()
-	/*set the pcb free and decrease the processcnt*/
+
+	/*set the pcb free*/
 	freePcb(proc);
+
+	/*fix the process count*/
 	processcnt -=1;
 }
