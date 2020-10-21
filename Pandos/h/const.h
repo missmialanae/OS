@@ -42,13 +42,13 @@
 #define DEVINTNUM		  5		  /* interrupt lines used by devices */
 #define DEVPERINT		  8		  /* devices per interrupt line */
 #define DEVREGLEN		  4		  /* device register field length in bytes, and regs per dev */	
-#define DEVREGSIZE	  16 		/* device register size in bytes */
+#define DEVREGSIZE	      16 	  /* device register size in bytes */
 
 /* device register field number for non-terminal devices */
 #define STATUS			  0
 #define COMMAND			  1
-#define DATA0			    2
-#define DATA1			    3
+#define DATA0			  2
+#define DATA1			  3
 
 /* device register field number for terminal devices */
 #define RECVSTATUS  	0
@@ -58,8 +58,8 @@
 
 /* device common STATUS codes */
 #define UNINSTALLED		0
-#define READY			    1
-#define BUSY			    3
+#define READY			1
+#define BUSY			3
 
 /* device common COMMAND codes */
 #define RESET			    0
@@ -72,7 +72,7 @@
 #define KUSEG           0x80000000
 #define RAMSTART        0x20000000
 #define BIOSDATAPAGE    0x0FFFF000
-#define	PASSUPVECTOR	  0x0FFFF900
+#define	PASSUPVECTOR	0x0FFFF900
 
 /* Exceptions related constants */
 #define	PGFAULTEXCEPT	  0

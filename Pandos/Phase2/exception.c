@@ -64,7 +64,8 @@ void sysTrap(){
 
 		/*terminate the process -- sys 2*/
 		case TERMINATEPROCESS:{
-			/*end the process*
+			/*end the process*/
+			removeProcess(currentproc);
 
 			/*call the scheduler*/
 			scheduler();
@@ -87,9 +88,18 @@ void sysTrap(){
 
 		/*getTime -- sys 6*/
 		case GETTIME:{
-			/*idk what is going on here*/
+
+			/*variables*/
+			cpu_t resulTime;
+
+			STCK(currentTime);
+			resulTime = ((currentTime) - startTOD) + currentproc->p_time;
+
+			currentproc->p_s.s_v0 = resulTime;
 
 			/*need to return control at the end */
+
+			contextSwitch(currentproc);
 		}
 
 		/*Clock Wait  -- sys 7*/
@@ -99,7 +109,10 @@ void sysTrap(){
 
 		/*get support PTR -- sys 8*/
 		case GETSUPPORTPTR:{
+
 			/*idk what happens here tbh*/
+
+			supportPtr();
 		}
 
 		default :{
@@ -155,15 +168,6 @@ void createProcess(){
 	contextSwitch(currentproc);
 
 }
-/******************** END SYS 1 *************************************************/
-
-/******************** SYS 2 *****************************************************/
-void terminateProcess(){
-
-	/*set a0 TO 2*/
-
-}
-/******************** END SYS 2 *************************************************/
 
 /******************** SYS 3 *****************************************************/
 void passeren(){
@@ -178,8 +182,8 @@ void passeren(){
 	/*need to block and invoke scheduler*/
 	if(*sem < 0){
 
-
 		blockCurrent(&sem; currentproc);
+	
 		scheduler();
 	}
 	/*now another context switch*/
@@ -255,30 +259,39 @@ void waitIO(){
 	}
 
 }
-/******************** SYS 6 *****************************************/
-void getCPU(){
-
-
-}
-
-/******************** END SYS 6 *************************************/
 
 /******************** SYS 7 *****************************************/
 void waitClock(){
 
+	/*take one off of the clock sem4*/
+	clockSem -=1; 
+
+	/*need to block current process*/
+	if(clockSem < 0){
+		/*now block it*/
+		blockCurrent(&(clockSem));
+	}
+
+	/*finally context switch*/
+	contextSwitch(currentproc);
+
 }
-/******************** END SYS 7 *************************************/
 
 /******************** SYS 8 *****************************************/
-void supportPTR(){
+void supportPtr(){
 
+	/*variables*/
+	support_t *support;
+
+	/*setting support*/
+	support = currentproc->p_supportStruct;
+
+	/*setting currentproc's v0 to be support*/
+	currentproc->p_s.s_v0 = support;
+
+	/*now switch the context*/
+	contextSwitch(currentproc);
 }
-
-/******************** END SYS 8 *************************************/
-
-/******************** SYS 9 *****************************************/
-
-/******************** END SYS 9 *************************************/
 
 HIDDEN void passUpOrDie(int except){
 
@@ -296,8 +309,10 @@ HIDDEN void passUpOrDie(int except){
 	/*if it is null send it to the passup vector*/
 
 	/*get rid of the currentproc*/
+	removeProcess(currentproc);
 
 	/*need to switch the process*/
+	procSwitch();
 }
 
 
@@ -358,12 +373,34 @@ void blockCurrent(int *blockSem){
 }
 
 void removeProcess(pcb_t *proc){
+	/*this helps with sys 2 whitch removes a process. The function
+	recursively removes the process downwards and then frees the pcb
+	and decreases the processcnt*/
 
 	/* recursively removes the process down
 	/*variables*/
 	pcb_t *temp;
 	int *sem; /*ptr to a semadd value*/
 
+	/*first you need to make sure it doesn't have a child*/
+	while(!emptyChild(proc)){
+		removeProcess(removeChild(proc));
+	}
 
+	/*if you are the current proc*/
 
+	if(proc == currentproc){
+		outChild(proc);
+	}
+
+	/*if the process is on the ready queue*/
+	if(proc->p_semADD == NULL){
+		outProcQ(&(readyQueue), proc);
+	}
+
+	/*need to update the softBlocked count and don't V*/
+	if()
+	/*set the pcb free and decrease the processcnt*/
+	freePcb(proc);
+	processcnt -=1;
 }
