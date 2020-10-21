@@ -170,7 +170,7 @@ void GenExceptionHander(){
 		tlbTrapH();
 	}
 	if(reason == SYSEXCEPTION){
-		sysTrapH();
+		sysTrap();
 	}
 
 	/*anything else*/
