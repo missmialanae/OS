@@ -2,6 +2,12 @@
 #include "../h/types.h"
 #include "../h/asl.h"
 #include "../h/pcb.h"
+#include "../h/init.h"
+#include "../h/scheduler.h"
+#include "../h/exception.h"
+#include "../h/interrupts.h"
+
+#include "/usr/local/include/umps3/umps/libumps.h"
 
 /********************************************************************************
  * 
@@ -382,7 +388,7 @@ void blockCurrent(int *blockSem){
 	currentproc = NULL;
 
 	/*go to the next process*/
-	procSwitch();
+	scheduler();
 }
 
 void removeProcess(pcb_t *proc){

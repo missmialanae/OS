@@ -2,6 +2,14 @@
 #include "../h/types.h"
 #include "../h/asl.h"
 #include "../h/pcb.h"
+#include "../h/init.h"
+#include "../h/scheduler.h"
+#include "../h/exception.h"
+#include "../h/interrupts.h"
+
+#include "/usr/local/include/umps3/umps/libumps.h"
+
+
 
 /********************************************************************************
  * 
@@ -49,7 +57,7 @@ void contextSwitch(pcb_t *currentproc){
 
 }
 
-void procSwitch(){
+void scheduler(){
 	/*takes the next process on the ready queue and makes it the current process*/
 
 	/*if I found one I need to remove it from the redy queue*/

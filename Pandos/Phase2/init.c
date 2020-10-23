@@ -3,6 +3,13 @@
 #include "../h/types.h"
 #include "../h/asl.h"
 #include "../h/pcb.h"
+#include "../h/init.h"
+#include "../h/scheduler.h"
+#include "../h/exception.h"
+#include "../h/interrupts.h"
+
+#include "/usr/local/include/umps3/umps/libumps.h"
+
 
 /********************************************************************************
  * 
@@ -18,12 +25,9 @@
 
 /* methods mikey said we needed; put in .h */
 
-extern void uTLB RefillHandler();
+extern void uTLB_RefillHandler();
 extern void test();
 extern void GenExceptionHander();
-
-/*I/O state saverarea*/
-unsigned int devStat[DEVICECNT + DEVPERINT];
 
 /*Process Count*/
 int processcnt;
@@ -48,10 +52,14 @@ cpu_t sliceCount; /*do I need this now*/
 
 
 int main(){
+	int i; 
+	pcb_t *ram = allocPcb();
+	unsigned int RAMTOP; /*something for the ram*/
+
 
 
 /******************** PASS UP VECTOR *****************************************/
-	passup =(passupvector_t *)PASSUPVECTOR;
+	passupvector_t *passup =(passupvector_t *)PASSUPVECTOR;
 	passup->tlb_refill_handler = (memaddr) uTLB_refill;
 	passup->tlb_refill_stackPTR = KERNALSTACK;
 	passup->exception_handler = (memaddr)_genException; 
@@ -63,16 +71,16 @@ int main(){
 
 /******************** INITALIZATION OF NUCLEUS VARIABLES *********************/
 	/*Process Count*/
-	int processcnt = 0;
+	processcnt = 0;
 
 	/*Soft-block count*/
-	int softblock = 0;
+	softblock = 0;
 
 	/*ready queue*/
-	pcb_t *readyqueue = mkemptyProc();
+	readyQueue = mkemptyProc();
 
 	/*setting current process */
-	pcb_t *currentproc = NULL; 
+	currentproc = NULL; 
 
 	/*initialize I/O and clock semaphores*/
 
@@ -87,56 +95,21 @@ int main(){
 
 
 /******************** INSTANTIATE SINGLE PROCESS *****************************/
-/***stuff pandos tells us to do page 18*****
 
-	Do I need this shit? I'm gonna ask Umang
-
-	pcb_t -> newPcb = allocPcb(); /**initiate process 
-
-
-	newPcb -> readyqueue; /**place its pcb in ready queue**/
-		
-
-	/*for loop to initiate a single purpose queue, place its pcb in ready queue 
-	and increment process count*
-
-		int i;
-
-		for(int i = 0; i < 49; i++){ 
-			/*yes, for loop serve me nothing
-		}
-
-	  newPcb -> p_s.s_pc = (&(test));
-
-	  /**when we assign a value to pc we have to assign the same value to the gen pupose register t9 here
-
-	  newPcb -> p_s.s_sp = RAMTOP;	/**enable kernal mode?
-
-	/**set the previous bits*
-
-	  newPcb -> p_s.s KUp = 0; 
-
-	  newPcb -> p.s.s IEp = 1;
-
-	  newPcb -> p_time = 0;
-	 
-	newPcb -> p_supportStruct = NULL; */
 
 /******************** SCHEDULER **********************************************/
-	int i; 
-	pcb_t *ram = allocPcb();
-	unsigned int RAMTOP; /*something for the ram*/
-
 
 	/*RAMTOP set up*/
-	RAMTOP(topofRAM);
+
+	memaddr topOfRAM; 
+
+	RAMTOP(topOfRAM);
 	if(ram != NULL){
 		ram->p_s.s_pc = p->p_s.s_t9 = (memaddr)
 		ram->p_s.s_status = ALLOFF | IEPON | IMON | TEBITONL;
 		ram->p_s.s_sp = topofRAM; /*setting the stack pointer*/
 		processcnt += 1;
 		insertProcQ(&readyQueue, ram);
-
 		scheduler();
 	}
 
@@ -147,6 +120,7 @@ int main(){
 
 	/*idk Mikey said so*/
 	return 0;
+	
 }/*end of main*/
 
 /******************** GenExceptionHandler() **********************************************/
@@ -155,11 +129,11 @@ void GenExceptionHander(){
 	/*looks at the cause register (stored by BIOS) and points to which syscall it is*/
 
 	/*variables*/
-	state_PTR state;
+	state_PTR oldState;
 	int reason;
 
 	/*setting the variables*/
-	oldState(state_PTR)BIOSDATAPAGE;
+	oldState = (state_PTR)BIOSDATAPAGE;
 	reason = (oldState-s_cause + GETEXECCOD) >> CAUSESHIFT;
 
 	/*if it is one of these send it to one of these*/

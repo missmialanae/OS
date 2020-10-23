@@ -6,6 +6,9 @@
 #include "../h/scheduler.h"
 #include "../h/exception.h"
 #include "../h/interrupts.h"
+#include "/usr/local/include/umps3/umps/libumps.h"
+
+
 
 /********************************************************************************
  * 
@@ -46,7 +49,7 @@ void localTimer(cpu_t stopTOD){
 
 		insertProcQ(&readyqueue, currentproc); /* call insertProc*/
 
-		procSwitch(); /*call switch */
+		scheduler(); /*call switch */
 
 	}
 
@@ -82,7 +85,7 @@ void timerInt(){
 	semClock = 0; //reset semaphore clock
 
 	currentproc = NULL;
-	procSwitch();   /*it returns to the running process here*/
+	scheduler();   /*it returns to the running process here*/
 
 
 
@@ -142,7 +145,7 @@ void IOHandler(int lineNum){
 
 		if(currentproc = NULL){ /**get a new proc **/
 
-			switch();
+			scheduler();
 		}
 
 	}
