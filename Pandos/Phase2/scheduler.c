@@ -17,9 +17,9 @@
 /*external fucntions*/
 
 extern void moveState();
-extern void switch();
-extern void prep();
-extern void finalmsg(); /*do we need this*/
+extern void contextSwitch();
+extern void procSwitch();
+
 
 void moveState(state_PTR source, state_PTR final){
 	int i; 
@@ -36,61 +36,63 @@ void moveState(state_PTR source, state_PTR final){
 	source->s_pc = source ->s_pc;
 
 }
-/*first want to check if the readyqueue is empty*/
-void switch(){
 
-	pcb_t *p;
-	pcb_t *currentproc;
+void contextSwitch(pcb_t *currentproc){
 
-	if(p != null){
-		/*call prep*/
-		prep();
+	/*switches to the process that needed to be in control*/
 
-	}
+	/*need to make sure the current proc is set*/
+	pcb_t *currentproc = currentproc;
 
-	if(emptyProcQ(&readyqueue)){
-		if (processcnt = 0){
-			/*invoke the HALT BIOS and you are done*/
-			void HALT();
-		}
+	/*call loadstate*/
+	LDST(&currentproc->p_s);
 
-		if(processcnt > 0 && softblock > 0){
-			/*enter a wait state which is supported */
-
-			currentproc == NULL;
-
-			/*do I need to set and store the status*/ 
-
-			/*need to load cpu timer with larger number to stop it */
-
-			void WAIT(); 
-
-		}
-
-		if(processcnt > 0 && softblock = 0){
-			/*deadlock*/
-
-			/*dedlock detected*/
-
-			/*invoke PANIC BIOS*/
-			void PANIC(); 
-		}
-	}
 }
 
-/* if the ready queue is not ready */
+void procSwitch(){
+	/*takes the next process on the ready queue and makes it the current process*/
 
-/*remove the pcb from the head of the Ready queue*/
-removePCB(&readyqueue); 
+	/*if I found one I need to remove it from the redy queue*/
+	pcb_t *removed = removeProcQ(&readyQueue);
 
-/*store the pointer to current process*/
-pcb_t currentproc = head of the ready queue;
+	/*if I find one I need to switch to it*/
+	if(removed != NULL){
+		/*just like in exceptions --- is this LDST*/
 
-/*load 5 miliseconds to the PLT */
+		STCK(startTOD);
+		/*give it time to put on the clock*/
+
+		/*switch context*/
+		contextSwitch(currentproc);
+	}
+
+	/********* if the ready queue is empty ************/
+
+	/*make sure the ready queue is empty*/
+	if(emptyProcQ(&readyQueue)){
+
+		/*if there are no more processes then die*/
+		if(processcnt == 0){
+			/*invoke the HALT BIOS and now you are done*/
+			HALT();
+		}
+
+		if(processcnt < 0 && softBlock > 0){
+
+			/*There is some other things that idk how to do*/
 
 
+			/*set the local timer to be a big number*/
 
-/*perform LDST on the processor state stored in the pcb of the current process*/
-LDST(currentproc->s_status); 
+			/*enter a wait state*/
+			WAIT();
+		}
+		/*anything else just panic*/
+		PANIC();
+	}
+
+	PANIC();
+}
+
 
 /******************* END ******************************************************/

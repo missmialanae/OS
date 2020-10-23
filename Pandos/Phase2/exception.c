@@ -228,18 +228,18 @@ void waitIO(){
 	/*match the interrupt numbers with the device*/
 
 	/*need to set interrupts to a1*/
-	interruptLine = currentproc->p_s.s_a1;
+	interruptLine = (int) currentproc->p_s.s_a1;
 
 	/*need to set device number to a2*/
-	deviceNum = currentproc->p_s.s_a2;
+	deviceNum = (int) currentproc->p_s.s_a2;
 
 	/*convert devices to sema4 */
-	deviceNum += ((interruptLine - DISKINT) * DEVPERINT);
+	deviceNum += ((interruptLine - DISKINT) * DEVPERINT);/*find which device your in*/
 
 	/*terminal reading*/
 
 	if((interruptLine = TERMINT) && (currentproc->p_s.s_a3)){
-		deviceNum +=DEVPERINT;
+		deviceNum = deviceNum + DEVPERINT;
 	}
 
 	/*taking one off the device list */
@@ -312,7 +312,15 @@ HIDDEN void passUpOrDie(int except){
 	removeProcess(currentproc);
 
 	/*need to switch the process*/
-	procSwitch();
+	
+	/*need to start the TOD clock*/
+	STCK(startTOD);
+
+	/*give it time*/
+
+	/*call switchContext and switch it to the currentproc*/
+	contextSwitch(currentproc);
+
 }
 
 
@@ -357,8 +365,7 @@ void blockCurrent(int *blockSem){
 
 	/*variables*/
 
-	cpu_t stopTOD; /*what the hell is this*/
-
+	cpu_t stopTOD; 
 	STCK(stopTOD);
 
 	/*set the currentproc's time to the new stopTOD */
