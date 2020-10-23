@@ -16,8 +16,8 @@
  ********************************************************************************/
 /*external fucntions*/
 
-extern void moveState();
-extern void contextSwitch();
+extern void moveState(state_PTR source, state_PTR final);
+extern void contextSwitch(pcb_t *currentproc);
 extern void procSwitch();
 
 

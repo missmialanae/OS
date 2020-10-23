@@ -164,7 +164,7 @@ void GenExceptionHander(){
 
 	/*if it is one of these send it to one of these*/
 	if(reason == IOINTERRUPTS){
-		int TrapH();
+		TrapH();
 	}
 	if (reason == TLB){
 		tlbTrapH();

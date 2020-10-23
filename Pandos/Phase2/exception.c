@@ -15,9 +15,15 @@
 extern void pgmTrapH();
 extern void tlbTrapH();
 extern void sysTrapH();
-extern void blockCurrent();
-extern void removeProcess();
-HIDDEN void passUpOrDie();
+extern void blockCurrent(int *blockSem);
+extern void removeProcess(pcb_t *proc);
+HIDDEN void passUpOrDie(int except);
+extern void createProcess();
+extern void passeren();
+extern void verhogen();
+extern void waitIO();
+extern void waitClock();
+extern void supportPtr();
 
 /*global variable*/
 pcb_t *currentproc = NULL;
@@ -324,7 +330,7 @@ HIDDEN void passUpOrDie(int except){
 }
 
 
-int sycallHandler(){
+int sycallHandler(){ /*do I need this*/
 	/*this function will deal with the main calling of the sycall
 	it will decided which syscall it will use*/
 

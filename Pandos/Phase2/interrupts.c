@@ -17,6 +17,10 @@
  *
  /********************************************************************************/
 
+/*externs*/
+HIDDEN void localTimer(cpu_t stopTOD);
+HIDDEN void timerInt();
+HIDDEN void IOHandler(int lineNum);
 
 /******************************** PROGRAM TRAP **********************************/
 /* if( in user mode){
@@ -26,8 +30,10 @@
 
 int p; /* the local variable */
 
+/*do we need a intTraphH function*/
 
-void localTimer(){
+
+void localTimer(cpu_t stopTOD){
 
 if(currentproc != NULL){
 	currentproc -> p_time = stopTOD - startTOD; /*change the time to the current process*/
@@ -79,7 +85,7 @@ switch();   /*it returns to the running process here*/
 } /***END OF TimerInt****/
 
 
-void IOHandler(){
+void IOHandler(int lineNum){
 
 /*deviceReg = RAMBASEADDR;*/    /*establish addressing here*/
 
@@ -107,7 +113,7 @@ deviceSem = ((lineInt - DISKINT) * DEVPERINT) deviceNum; /*determine semaphore f
 if(intLine = TERMINT){
 
 intStat = timerInt(deviceSem);
-
+	
 /**more stuff goes in here **/
 
 } /*end of special case*/
