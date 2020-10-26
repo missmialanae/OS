@@ -43,7 +43,7 @@
 #define DEVPERINT		  8		  /* devices per interrupt line */
 #define DEVREGLEN		  4		  /* device register field length in bytes, and regs per dev */	
 #define DEVREGSIZE	      16 	  /* device register size in bytes */
-
+#define DEVICECNT 		  48
 /* device register field number for non-terminal devices */
 #define STATUS			  0
 #define COMMAND			  1
@@ -74,6 +74,22 @@
 #define BIOSDATAPAGE    0x0FFFF000
 #define	PASSUPVECTOR	0x0FFFF900
 
+/*these need to be set with values but I am confused on the proper value*/
+#define KERNAL
+#define genException
+#define refill			0x0FFFF000
+
+/*Status*/
+#define ALLOFF			0x00000000
+#define ON 				1
+#define OFF 			0
+
+/*idk what to set these to */
+#define IEPON
+#define IMON
+#define TEBITONL
+#define SHIFTS
+
 /* Exceptions related constants */
 #define	PGFAULTEXCEPT	  0
 #define GENERALEXCEPT	  1
@@ -89,5 +105,8 @@
 
 /* Macro to read the TOD clock */
 #define STCK(T) ((T) = ((* ((cpu_t *) TODLOADDR)) / (* ((cpu_t *) TIMESCALEADDR))))
+
+/*Macro for RAMTOP*/
+#define RAMTOP(T)((T) = ((*((int *)RAMBASEADDR))+(*((int *)RAMBASESIZE))))
 
 #endif
