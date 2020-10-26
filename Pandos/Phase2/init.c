@@ -45,10 +45,10 @@ pcb_t *currentproc;
 int devices[DEVICECNT + DEVPERINT + 1];
 
 /*time unit*/
-cpu_t startTOD;
+cpu_t *startTOD;
 
 /*amt till time slice*/
-cpu_t sliceCount; /*do I need this now*/
+cpu_t *sliceCount; /*do I need this now*/
 
 
 int main(){
@@ -60,10 +60,10 @@ int main(){
 
 /******************** PASS UP VECTOR *****************************************/
 	passupvector_t *passup =(passupvector_t *)PASSUPVECTOR;
-	passup->tlb_refill_handler = (memaddr) uTLB_refill;
-	passup->tlb_refill_stackPTR = KERNALSTACK;
-	passup->exception_handler = (memaddr)_genException; 
-	passup->exception_stackPTR = KENERALSTACK;
+	passup->tlb_refll_handler = (memaddr) uTLB_RefillHandler;
+	passup->tlb_refll_stackPtr = KERNALSTACK;
+	passup->execption_handler = (memaddr) GenExceptionHander; 
+	passup->execption_stackPtr = KENERALSTACK;
 
 /******************** INITALIZATION OF PHASE 1 *******************************/
 	initPCB();
@@ -74,17 +74,17 @@ int main(){
 	processcnt = 0;
 
 	/*Soft-block count*/
-	softblock = 0;
+	softBlock = 0;
 
 	/*ready queue*/
-	readyQueue = mkemptyProc();
+	readyQueue = mkEmptyProcQ();
 
 	/*setting current process */
 	currentproc = NULL; 
 
 	/*initialize I/O and clock semaphores*/
 
-	semClock = 0;
+	cpu_t *semClock = 0; /*is this actually a clock or is it an int?*/
 	for(i = 0; i < DEVICECNT; i++){
 		devices[i] = 0;
 	}
@@ -105,9 +105,9 @@ int main(){
 
 	RAMTOP(topOfRAM);
 	if(ram != NULL){
-		ram->p_s.s_pc = p->p_s.s_t9 = (memaddr)
-		ram->p_s.s_status = ALLOFF | IEPON | IMON | TEBITONL;
-		ram->p_s.s_sp = topofRAM; /*setting the stack pointer*/
+		ram->p_s->s_pc = ram->p_s->s_t9 = (memaddr);
+		ram->p_s->s_status = ALLOFF | IEPON | IMON | TEBITONL; /*where do you define these in const.h?*/
+		ram->p_s->s_sp = topOfRAM; /*setting the stack pointer*/
 		processcnt += 1;
 		insertProcQ(&readyQueue, ram);
 		scheduler();
@@ -118,9 +118,9 @@ int main(){
 		PANIC();
 	}
 
-	/*idk Mikey said so*/
+	/*Mikey said so*/
 	return 0;
-	
+
 }/*end of main*/
 
 /******************** GenExceptionHandler() **********************************************/
@@ -129,15 +129,15 @@ void GenExceptionHander(){
 	/*looks at the cause register (stored by BIOS) and points to which syscall it is*/
 
 	/*variables*/
-	state_PTR oldState;
+	state_t *state;
 	int reason;
 
 	/*setting the variables*/
-	oldState = (state_PTR)BIOSDATAPAGE;
-	reason = (oldState-s_cause + GETEXECCOD) >> CAUSESHIFT;
+	state = (state_PTR)BIOSDATAPAGE;
+	reason = (state->s_cause) >> SHIFTS; /*do i actually need to define this?*/
 
 	/*if it is one of these send it to one of these*/
-	if(reason == IOINTERRUPTS){
+	if(reason == IOINTERRUPTS){ /*Do I need to define these in const.h*/
 		TrapH();
 	}
 	if (reason == TLB){
