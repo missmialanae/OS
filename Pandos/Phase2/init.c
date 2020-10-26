@@ -60,10 +60,10 @@ int main(){
 
 /******************** PASS UP VECTOR *****************************************/
 	passupvector_t *passup =(passupvector_t *)PASSUPVECTOR;
-	passup->tlb_refll_handler = (memaddr) uTLB_RefillHandler;
-	passup->tlb_refll_stackPtr = KERNALSTACK;
+	passup->tlb_refll_handler = (memaddr) REFILL; /*why not uTLB_RefullHandler?*/
+	passup->tlb_refll_stackPtr = KERNAL;
 	passup->execption_handler = (memaddr) GenExceptionHander; 
-	passup->execption_stackPtr = KENERALSTACK;
+	passup->exception_stackPtr = KERNAL;
 
 /******************** INITALIZATION OF PHASE 1 *******************************/
 	initPCB();
@@ -105,7 +105,7 @@ int main(){
 
 	RAMTOP(topOfRAM);
 	if(ram != NULL){
-		ram->p_s->s_pc = ram->p_s->s_t9 = (memaddr);
+		ram->p_s->s_pc = ram->p_s->s_t9 = (memaddr) test;
 		ram->p_s->s_status = ALLOFF | IEPON | IMON | TEBITONL; /*where do you define these in const.h?*/
 		ram->p_s->s_sp = topOfRAM; /*setting the stack pointer*/
 		processcnt += 1;
@@ -134,20 +134,27 @@ void GenExceptionHander(){
 
 	/*setting the variables*/
 	state = (state_PTR)BIOSDATAPAGE;
-	reason = (state->s_cause) >> SHIFTS; /*do i actually need to define this?*/
+	reason = (state->s_cause); /*do i actually need to define this?*/
 
 	/*if it is one of these send it to one of these*/
-	if(reason == IOINTERRUPTS){ /*Do I need to define these in const.h*/
-		TrapH();
-	}
-	if (reason == TLB){
-		tlbTrapH();
-	}
-	if(reason == SYSEXCEPTION){
-		sysTrap();
-	}
 
-	/*anything else*/
-	pgmTrapH();
+	while(reason >= 0 && reason <= 13){
+		if(reason == 0){ 
+			/*IO interrupts*/
+			TrapH();
+		}
+
+		if(reason >= 1 && reason <= 7){
+			tlbTrapH();
+		}
+
+		if(reason == 8 ){
+			/*syscalls*/
+			sysTrap();
+		}
+
+		/*anything else*/
+		pgmTrapH();
+	}
 
 }
