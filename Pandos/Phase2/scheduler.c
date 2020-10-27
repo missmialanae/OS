@@ -26,7 +26,7 @@
 
 extern void moveState(state_PTR source, state_PTR final);
 extern void contextSwitch(pcb_t *currentproc);
-extern void procSwitch();
+extern void scheduler();
 
 
 void moveState(state_PTR source, state_PTR final){
@@ -60,7 +60,7 @@ void contextSwitch(pcb_t *currentproc){
 void scheduler(){
 	/*takes the next process on the ready queue and makes it the current process*/
 
-	/*if I found one I need to remove it from the redy queue*/
+	/*if I found one I need to remove it from the ready queue*/
 	pcb_t *removed = removeProcQ(&readyQueue);
 
 	/*if I find one I need to switch to it*/

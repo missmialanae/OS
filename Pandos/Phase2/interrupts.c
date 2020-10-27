@@ -15,127 +15,185 @@
  * This file contains all methods and instruction for interrupts. This file 
  * controls context switches and deals with the mapping of all the devices
  * through. Deals with Non-timer interrupts, PLT interrupts, the system wide 
- * interval timer and pseudoclock
+ * interval timer and pseudoclock. 
  * 
  *
  /********************************************************************************/
 
 /*externs*/
-HIDDEN void localTimer(cpu_t stopTOD);
-HIDDEN void timerInt();
-HIDDEN void IOHandler(int lineNum);
-
-/******************************** PROGRAM TRAP **********************************/
-/* if( in user mode){
-	perform pass up and die
-} */
+HIDDEN void plt(cpu_t stopTOD);
+HIDDEN void pseudoInterrupts();
+HIDDEN void IOHandler(int num);
 
 
-int p; /* the local variable */
+/* the stupid global variable so it will stop giving me errors*/
 
-/*do we need a intTraphH function*/
+/*Process Count*/
+int processcnt;
 
+/*Soft-block count*/
+int softBlock;
 
-void localTimer(cpu_t stopTOD){
+/*ready queue*/
+pcb_t *readyQueue;
 
+/*setting current process */
+pcb_t *currentproc; 
+
+/*add these just in case*/
+int deviceNum;
+
+int interruptLine;
+
+semd_t *semClock; 
+
+/*device semaphores */
+int devices[DEVICECNT + DEVPERINT + 1];
+
+/*time unit*/
+cpu_t startTOD;
+
+/*amt till time slice*/
+cpu_t *sliceCount; /*do I need this now*/
+
+void plt(cpu_t stopTOD){
+	/*Handles the procedures to handle CPU when it generates a clock interrupt.*/
+	/*Deals with Quantum. */
 	if(currentproc != NULL){
 		currentproc -> p_time = stopTOD - startTOD; /*change the time to the current process*/
 
-		moveState(&BIOSDATAPAGE, &currentproc->p_s); /*store the processor state using move state*/
+		moveState(BIOSDATAPAGE, currentproc->p_s); /*store the processor state using move state*/
 
 		scheduler(); /*when its the end of processor's time (sliceCount), invoke the schedular*/
 
 		/*do we actually need to invoke the scheduler. Mikey says that and sometimes he be lyin*/
 
-		insertProcQ(&readyqueue, currentproc); /* call insertProc*/
+		insertProcQ(&(readyQueue), currentproc); /* call insertProc*/
 
 		scheduler(); /*call switch */
 
 	}
-
-	else if(currentProc = NULL){ /* if there is no current process running call panic*/
+	
+	if(currentproc = NULL){ /* if there is no current process running call panic*/
 		
 		PANIC();
 	}
+}
 
-} /***END OF localTime****/
+void pseudoInterrupts(){
+	/*This function handles the pseudo clock tick. This performs a V operation every 100 milliseconds on *
+	 * nucleus maintained sema4 list called the pseueoclockTick. */
 
-
-void timerInt(){
+	/*variables*/
+	pcb_t * remove
 
 	/* ACK interrupt using LDIT; this is the pseudoclock tick */
 
-	pcb_t *p; 
+	LDIT(PSEUDO);
 
-	LDIT(10000); /*need to put in the tume
+	/*need to unblock all pcbs*/
 
-	semClock = 0; /*Wake everyone that is on wait, (p-clock)*/ 
+	/*begin to remove it*/
+	while(remove != NULL){ /* while loop for when p isnt null*/
 
-	p = removeBlocked(); /*set p to removeBlocked*/
+		/*need to place it on to the readyQueue*/
+		insertProcQ(&(readyQueue), remove);
 
-	while(p != NULL){ /* while loop for when p isnt null*/
+		/*remove it*/
+		removeBlocked(remove->s_semAdd);
 
-		insertProcQ(&reaQueue, p);
-
-		softblock -= 1;
-		p = removeBlocked(&semClock); 
-
+		/*decrease the softBlock count*/
+		softBlock -= 1;
 	}
 
-	semClock = 0; //reset semaphore clock
+	/*reset the pseudo to 0*/
+	semClock = 0;
 
-	currentproc = NULL;
-	scheduler();   /*it returns to the running process here*/
+	/*need to check and make sure there is a current proc to go back too */
+	if(currentproc == NULL){
 
+		/*no current proc you have to wait */
+		WAIT();
+	}
 
+	/*Yes current proc then return control to the currentproc*/
+	contextSwitch(currentproc); 
+}
 
-} /***END OF TimerInt****/
+void IOHandler(int num){
 
+	/*variables*/
+	int lineNum = num; /*setting the number it recieves to be the line number*/
 
-void IOHandler(int lineNum){
+	/*Establish addressing portion */
 
-	deviceReg = RAMBASEADDR;    /*establish addressing here*/
+	/* setting up the device register */
+	votatile devregarea_t *deviceReg = (devregarea_t *) RAMBASEADDR;    /*establish addressing here*/
 
+	/*setting up the bit map to locate the proper device with the proper line number*/
 	bitMap = deviceReg -> interrupt_dev[(lineNum - DISKINT)]; /* this is second part of addressing*/
 
 	/* While loop to determine the lowest number bit */
+	while(bitMap != 0){
 
-	while(bitMap & DEVON != 0 ){
+		if(DEV0ON != 0 ){
+			deviceNum = 0;
+		}
 
-		if(DEV0ON <= DEV6ON){ /* if the bits are greater than 0 and equal 6 
+		if(DEV1ON != 0){
+			deviceNum = 1;
+		}
 
-			/** HOW DO I DO THIS WHAT DO I SET THIS TO **/
+		if(DEV2ON != 0){
+			deviceNum = 2;
+		}
 
-		} else 
+		if(DEV3ON != 0){
+			deviceNum = 3;
+		}
 
-		 deviceNum = 7; 
+		if(DEV4ON != 0){
+			deviceNum = 4;
+		}
 
+		if(DEV5ON != 0){
+			deviceNum = 5;
+		}
 
-	}
+		if(DEV6ON != 0){
+			deviceNum = 6;
+		}
 
-	deviceSem = ((lineNum - DISKINT) * DEVPERINT) * deviceNum; /*determine semaphore for device */
+		deviceNum = 7;
 
-	/* special case for terminal interrupt-- idk if he added this or if we need it frfr? */
+	} /*end of while loop*/
 
-	if(intLine = TERMINT){
+	/*have to determine the sema4 for this device*/
+	int sema = ((lineNum - DISKINT) * DEVPERINT) * deviceNum; 
 
-		intStat = timerInt(deviceSem);
+	/* handles the special case for terminal interrupt*/
+	if(line = TERMINT){
+
+		intStat 
 			
 		/**more stuff goes in here **/
 
 	} /*end of special case*/
 
-	deviceSem[deviceSemNum] += 1; /* have to V the semaphore*/
+	/* have to V the semaphore*/
+	devices[sem] += 1; 
+
+	/*sys 5 to perfrom*/
 
 	if(deviceSemNum <= 0){ /*waiting for the IO that is already performed here */
 
-		p = removeBlocked(&(deviceSem[deviceSemNum]));
+		p = removeBlocked(&(deviceSem[deviceSemNum])); 
 
 		if(p != NULL){
 
 			p -> p.s.s.v0 = intStat; /* save status in ACK */
 
-			insertBlocked();
+			insertBlocked(&(readyQueue), p);
 
 			softblock -=1;
 

@@ -84,7 +84,7 @@ int main(){
 
 	/*initialize I/O and clock semaphores*/
 
-	cpu_t *semClock = 0; /*is this actually a clock or is it an int?*/
+	semd_t *semClock = 0; /*is this actually a clock or is it an int?*/
 	for(i = 0; i < DEVICECNT; i++){
 		devices[i] = 0;
 	}
@@ -105,8 +105,9 @@ int main(){
 
 	RAMTOP(topOfRAM);
 	if(ram != NULL){
-		ram->p_s->s_pc = ram->p_s->s_t9 = (memaddr) test;
-		ram->p_s->s_status = ALLOFF | IEPON | IMON | TEBITONL; /*where do you define these in const.h?*/
+		ram->p_s->s_t9 = (memaddr) test;
+		ram->p_s->s_pc = ram->p_s->s_t9;
+		ram->p_s->s_status = ALLOFF | IEPON | IMON | TEBITONL;
 		ram->p_s->s_sp = topOfRAM; /*setting the stack pointer*/
 		processcnt += 1;
 		insertProcQ(&readyQueue, ram);
@@ -134,10 +135,9 @@ void GenExceptionHander(){
 
 	/*setting the variables*/
 	state = (state_PTR)BIOSDATAPAGE;
-	reason = (state->s_cause); /*do i actually need to define this?*/
+	reason = (state->s_cause); 
 
 	/*if it is one of these send it to one of these*/
-
 	while(reason >= 0 && reason <= 13){
 		if(reason == 0){ 
 			/*IO interrupts*/
