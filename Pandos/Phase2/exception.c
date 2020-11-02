@@ -326,11 +326,8 @@ HIDDEN void passUpOrDie(int except){
 
 	/*need to switch the process*/
 	
-	/*need to start the TOD clock*/
-	STCK(startTOD);
-
-	/*give it time*/
-
+	/*first need to give it time*/
+	intervalSwitch(currentproc; time);
 	/*call switchContext and switch it to the currentproc*/
 	contextSwitch(currentproc);
 

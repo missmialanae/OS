@@ -49,7 +49,7 @@ void moveState(state_PTR source, state_PTR final){
 void contextSwitch(pcb_t *currentproc){
 
 	/*switches to the process that needed to be in control. Basically it is our loadstate caller.*/
-	/* Does this actually need need to be a fucntion*/
+	/* Does this actually need need to be a fucntion?*/
 
 	/*need to make sure the current proc is set*/
 	pcb_t *currentproc = currentproc;
@@ -77,8 +77,7 @@ void scheduler(){
 	if(removed != NULL){
 		/*just like in exceptions --- is this LDST*/
 
-		STCK(startTOD);
-		/*give it time to put on the clock*/
+		intervalSwitch(*remove, time);
 
 		/*switch context*/
 		contextSwitch(currentproc);
@@ -126,7 +125,6 @@ void intervalSwitch(pcb_t current; cpu_t time){
 	setTIMER(time);
 
 	/*do I always need to context switch*/
-	/*contextSwitch(current);*/
 }
 
 /******************* END ******************************************************/
