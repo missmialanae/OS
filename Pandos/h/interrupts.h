@@ -11,12 +11,18 @@
 
 #include "../h/types.h"
 
-
-
-
 /*externs*/
-HIDDEN void localTimer(cpu_t stopTOD);
-HIDDEN void timerInt();
-HIDDEN void IOHandler(int lineNum);
+HIDDEN void plt(cpu_t stopTOD);
+HIDDEN void pseudoInterrupts();
+HIDDEN void IOHandler(int num);
+
+extern int p; 
+/*extern pcb_t *currentproc = NULL;*/ 
+extern deviceStat;
+/*extern bitMap;*/
+extern semClock;
+extern int intLine;
+
+
 
 #endif

@@ -60,7 +60,7 @@ int main(){
 
 /******************** PASS UP VECTOR *****************************************/
 	passupvector_t *passup =(passupvector_t *)PASSUPVECTOR;
-	passup->tlb_refll_handler = (memaddr) REFILL; /*why not uTLB_RefullHandler?*/
+	passup->tlb_refll_handler = (memaddr) uTLB_RefillHandler; /*why not uTLB_RefullHandler?*/
 	passup->tlb_refll_stackPtr = KERNAL;
 	passup->execption_handler = (memaddr) GenExceptionHander; 
 	passup->exception_stackPtr = KERNAL;
@@ -111,6 +111,8 @@ int main(){
 		ram->p_s->s_sp = topOfRAM; /*setting the stack pointer*/
 		processcnt += 1;
 		insertProcQ(&readyQueue, ram);
+
+		/*are we actually calling scheduler or do we need to call contextSwitch?*/
 		scheduler();
 	}
 

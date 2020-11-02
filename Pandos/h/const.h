@@ -14,6 +14,7 @@
 #define pcb_PTR			pcb_t*
 #define semd_PTR		semd_t*
 #define MAXINT          0xFFFFFFFF
+#define MAX /*idk what to set this too*/
 
 
 /* timer, timescale, TOD-LO and other bus regs */
@@ -56,6 +57,15 @@
 #define TRANSTATUS  	2
 #define TRANCOMMAND 	3
 
+#define DEV0ON          0x00000001
+#define DEV1ON          0x00000002
+#define DEV2ON          0x00000004
+#define DEV3ON          0x00000008
+#define DEV4ON          0x00000010
+#define DEV5ON          0x00000020
+#define DEV6ON          0x00000040
+#define DEV7ON          0x00000080
+
 /* device common STATUS codes */
 #define UNINSTALLED		0
 #define READY			1
@@ -75,9 +85,9 @@
 #define	PASSUPVECTOR	0x0FFFF900
 
 /*these need to be set with values but I am confused on the proper value*/
-#define KERNAL
-#define genException
-#define refill			0x0FFFF000
+#define KERNAL			0x20000000
+#define GENEXE		 	0x00000080
+#define REFILL 			0x00000000
 
 /*Status*/
 #define ALLOFF			0x00000000
@@ -85,15 +95,23 @@
 #define OFF 			0
 
 /*idk what to set these to */
-#define IEPON
-#define IMON
-#define TEBITONL
-#define SHIFTS
+#define IEPON			0
+#define IMON			0
+#define TEBITONL		0
+#define SHIFTS     		0
 
 /* Exceptions related constants */
 #define	PGFAULTEXCEPT	  0
 #define GENERALEXCEPT	  1
 
+/*clock defines*/
+#define PSEUDO		10000 /*Pseudoclock; likely for the timer interrupt in interrupts.c*/
+#define QUANTUM 	50000
+#define MAX /*idk what to set this too*/
+
+
+
+/*Interval Timer*/
 
 /* operations */
 #define	MIN(A,B)		((A) < (B) ? A : B)

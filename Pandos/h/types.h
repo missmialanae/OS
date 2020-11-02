@@ -47,6 +47,13 @@ int 		*p_semAdd; /* pointer to sema4 on */
 /* ptr to support struct */
 } pcb_t;
 
+/*semaphore descriptor type */
+typedef struct semd_t {
+	struct semd_t *s_next;   /*next element on the ASL */
+	int 		  *s_semAdd; /*pointer to the sempahore */
+	pcb_t		  *s_procQ;  /* tail pointer to a */
+				   		 /*process queue */
+} semd_t; 
 
 /* Device Register */
 typedef struct {
@@ -78,7 +85,7 @@ typedef struct {
 	unsigned int inst_dev[DEVINTNUM];
 	unsigned int interrupt_dev[DEVINTNUM];
 	device_t	devreg[DEVINTNUM * DEVPERINT];
-} devregarea_t;
+} devregarea_t ;
 
 
 /* Pass Up Vector */
@@ -91,8 +98,8 @@ typedef struct passupvector {
 
 typedef struct context_t {
 	unsigned int c_stackPtr,  /* stack pointer value*/
-				c_status,	  /* status reg value*/
-				c_pc; 		  /* PC address*/
+				 c_status,	  /* status reg value*/
+				 c_pc; 		  /* PC address*/
 } context_t;
 
 typedef struct support_t{

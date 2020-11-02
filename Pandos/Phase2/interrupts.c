@@ -24,6 +24,7 @@
 HIDDEN void plt(cpu_t stopTOD);
 HIDDEN void pseudoInterrupts();
 HIDDEN void IOHandler(int num);
+HIDDEN void TraphH();
 
 
 /* the stupid global variable so it will stop giving me errors*/
@@ -38,7 +39,7 @@ int softBlock;
 pcb_t *readyQueue;
 
 /*setting current process */
-pcb_t *currentproc; 
+pcb_t *currentproc = NULL; 
 
 /*add these just in case*/
 int deviceNum;
@@ -55,6 +56,8 @@ cpu_t startTOD;
 
 /*amt till time slice*/
 cpu_t *sliceCount; /*do I need this now*/
+
+int bitMap; 
 
 void plt(cpu_t stopTOD){
 	/*Handles the procedures to handle CPU when it generates a clock interrupt.*/
@@ -123,90 +126,126 @@ void pseudoInterrupts(){
 void IOHandler(int num){
 
 	/*variables*/
-	int lineNum = num; /*setting the number it recieves to be the line number*/
+	int deviceReg;
+	int deviceSem;
+	int deviceNum;
+	int deviceSemNum;
+	int intStat;
+	int intLine;
+	pcb_t *readyqueue;
+	int devices[DEVICECNT + DEVPERINT + 1];
+	int interrupt_dev;
 
-	/*Establish addressing portion */
+	/*establish addressing*/
+	/*deviceReg = devregrea_t -> RAMBASEADDR;  */
+	deviceReg = RAMBASEADDR;  
+	bitMap = deviceReg &interrupt_dev[(lineNum - DISKINT)]; 
 
-	/* setting up the device register */
-	votatile devregarea_t *deviceReg = (devregarea_t *) RAMBASEADDR;    /*establish addressing here*/
 
-	/*setting up the bit map to locate the proper device with the proper line number*/
-	bitMap = deviceReg -> interrupt_dev[(lineNum - DISKINT)]; /* this is second part of addressing*/
-
-	/* While loop to determine the lowest number bit */
-	while(bitMap != 0){
-
-		if(DEV0ON != 0 ){
+	/*bitmapping*/
+	if(bitMap &DEV0ON != 0 ){
 			deviceNum = 0;
-		}
-
-		if(DEV1ON != 0){
+		
+		if(bitMap &DEV1ON != 0 ){
 			deviceNum = 1;
 		}
-
-		if(DEV2ON != 0){
+		if(bitMap &DEV2ON != 0 ){
 			deviceNum = 2;
 		}
-
-		if(DEV3ON != 0){
+		if(bitMap &DEV3ON != 0 ){
 			deviceNum = 3;
 		}
-
-		if(DEV4ON != 0){
+		if(bitMap &DEV4ON != 0 ){
 			deviceNum = 4;
 		}
-
-		if(DEV5ON != 0){
+		if(bitMap &DEV5ON != 0 ){
 			deviceNum = 5;
 		}
-
-		if(DEV6ON != 0){
+		if(bitMap &DEV6ON != 0 ){
 			deviceNum = 6;
 		}
+		if(bitMap &DEV7ON != 0 ){
+			deviceNum = 7;
+		}
+		
+	}
+		/*determine sem for device*/
+	deviceSemNum = ((lineNum - DISKINT) * DEVPERINT) + deviceNum;
 
-		deviceNum = 7;
+		/*case for terminal*/
+	if(intLine = TERMINT){
 
-	} /*end of while loop*/
+		intStat = timerInt(deviceSemNum);
+	     /*intStat = timerInt(deviceSem);*/
+		
+		
+	}else{
+		
+		intStat = (deviceReg &deviceReg[deviceSemNum]).d_status;
+		intStat = (deviceReg &deviceReg[deviceSemNum]).d_command = ACK;
+		
+		}/*end of special case*/
 
-	/*have to determine the sema4 for this device*/
-	int sema = ((lineNum - DISKINT) * DEVPERINT) * deviceNum; 
 
-	/* handles the special case for terminal interrupt*/
-	if(line = TERMINT){
+	    /*v the sem*/
+		deviceSem[deviceSemNum] <= 0; 
 
-		intStat 
-			
-		/**more stuff goes in here **/
+		/*wait for IO already done*/
+		if(deviceSemNum <= 0){ 
 
-	} /*end of special case*/
-
-	/* have to V the semaphore*/
-	devices[sem] += 1; 
-
-	/*sys 5 to perfrom*/
-
-	if(deviceSemNum <= 0){ /*waiting for the IO that is already performed here */
-
-		p = removeBlocked(&(deviceSem[deviceSemNum])); 
-
+			p = removeBlocked(&(deviceSem[deviceSemNum]));
+		}
 		if(p != NULL){
 
-			p -> p.s.s.v0 = intStat; /* save status in ACK */
+				/*p -> p.s.s.v0 = intStat;  /*save status in ACK */
+			p = intStat;
 
-			insertBlocked(&(readyQueue), p);
+			insertProcQ(&readyqueue, p);
 
-			softblock -=1;
+			softBlock -=1;
+	        /*save stat till sys8*/
+			intStat = deviceStat[deviceSemNum]; 
 
+			/*new proc*/
+			if(currentproc == NULL){ 
+
+				scheduler();
+			}
 		}
 
-		devStatus [deviceSemNum] = intStat; /* save the status until syscall 8 */
+}
 
-		if(currentproc = NULL){ /**get a new proc **/
+void TrapH(){
 
-			scheduler();
-		}
+	cpu_t time;
+	cpu_t interruptCause; /*cause_t?*/
+	STCK(time);
+	sliceCount = getTimer();
+	/*put biosdatapage into state*/
+	(state_t *) BIOSDATAPAGE; 
+    interruptCause = ((state_t *)BIOSDATAPAGE) -> s_cause;
 
+	
+	/*determining cause of interrupt*/
+	if(interruptCause & 0x00000200 != 0){
+		localTimer(time);
+	}
+	if(interruptCause & 0x00000400 != 0){
+		timerInt();
+	}
+	if(interruptCause & 0x00000800 != 0){
+		IOHandler(DISKINT); 
+	}
+	if(interruptCause & 0x00001000 != 0){
+		IOHandler(FLASHINT);
+	}
+	if(interruptCause & 0x00004000 != 0){
+		IOHandler(PRNTINT);
+	}
+	if(interruptCause & 0x00008000 != 0){
+		IOHandler(TERMINT);
 	}
 
+} /*end of TrapH*/
 
-} /*****End of IOHandler*****/
+/*****End of IOHandler*****/

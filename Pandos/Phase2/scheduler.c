@@ -27,6 +27,7 @@
 extern void moveState(state_PTR source, state_PTR final);
 extern void contextSwitch(pcb_t *currentproc);
 extern void scheduler();
+extern void intervalSwitch(pcb_t current; cpu_t time);
 
 
 void moveState(state_PTR source, state_PTR final){
@@ -47,7 +48,8 @@ void moveState(state_PTR source, state_PTR final){
 
 void contextSwitch(pcb_t *currentproc){
 
-	/*switches to the process that needed to be in control*/
+	/*switches to the process that needed to be in control. Basically it is our loadstate caller.*/
+	/* Does this actually need need to be a fucntion*/
 
 	/*need to make sure the current proc is set*/
 	pcb_t *currentproc = currentproc;
@@ -58,6 +60,14 @@ void contextSwitch(pcb_t *currentproc){
 }
 
 void scheduler(){
+	/*takes the next process on the ready queue and makes it the current process. Basically this will switch */
+	/*the processes for us. So when it is time to switch the process then call scheduler*/
+
+	/*local variables*/
+	int currentStatus; 
+
+    /*setTimer function here?? */
+
 	/*takes the next process on the ready queue and makes it the current process*/
 
 	/*if I found one I need to remove it from the ready queue*/
@@ -86,11 +96,15 @@ void scheduler(){
 		}
 
 		if(processcnt < 0 && softBlock > 0){
+			/*if we have something but it is busy*/
 
-			/*There is some other things that idk how to do*/
-
-
+			currentproc = NULL;
 			/*set the local timer to be a big number*/
+			setTimer(MAX); /*do we already know this or do we need to define it?*/
+
+			/*need to fix the status now*/
+			currentStatus = ALLOFF;
+			currentproc->s_status = currentStatus; /*is this allowed*/
 
 			/*enter a wait state*/
 			WAIT();
@@ -101,6 +115,18 @@ void scheduler(){
 
 	PANIC();
 }
+void intervalSwitch(pcb_t current; cpu_t time){
+	/*basically this should prepare the interval timer for given pcb. You should be able*/
+	/*to call this when you need to load a new process, and for clock and i/o interrupts*/
 
+	/*call the STCK macro to read the clock*/
+	STCK(startTOD);
+
+	/*set the timer to the time given*/
+	setTIMER(time);
+
+	/*do I always need to context switch*/
+	/*contextSwitch(current);*/
+}
 
 /******************* END ******************************************************/
