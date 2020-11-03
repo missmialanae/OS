@@ -12,10 +12,8 @@
 #include "../h/types.h"
 
 /*externs*/
-HIDDEN void plt(cpu_t stopTOD);
-HIDDEN void pseudoInterrupts();
-HIDDEN void IOHandler(int num);
-HIDDEN void trapH();
+
+extern void trapH();
 
 
 

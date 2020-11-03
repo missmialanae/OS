@@ -4,7 +4,6 @@
 #include "../h/pcb.h"
 #include "../h/init.h"
 #include "../h/scheduler.h"
-#include "../h/exception.h"
 #include "../h/interrupts.h"
 
 #include "/usr/local/include/umps3/umps/libumps.h"
@@ -30,33 +29,6 @@ extern void verhogen();
 extern void waitIO();
 extern void waitClock();
 extern void supportPtr();
-
-/*global variable*/
-
-/*Process Count*/
-int processcnt;
-
-/*ready queue*/
-pcb_t *readyQueue;
-
-/*device semaphores */
-int devices[DEVICECNT + DEVPERINT + 1];
-
-/*setting up the main pcb*/
-pcb_t *currentproc = NULL;
-
-/*Soft-block count*/
-int softBlock;
-
-/*sema4 clock*/
-cpu_t semClock; 
-
-/*for alloting time if needed*/
-cpu_t time; 
-
-/*time unit*/
-cpu_t startTOD;
-
 
 
 void pgmTrapH(){
@@ -301,13 +273,13 @@ void waitIO(){
 /******************** SYS 7 *****************************************/
 void waitClock(){
 
+	devices[DEVPERINT + DEVICECNT] -= 1;
 	/*take one off of the clock sem4*/
-	semClock -=1; 
 
 	/*need to block current process*/
-	if(semClock < 0){
+	if(devices[DEVPERINT + DEVICECNT] < 0){
 		/*now block it*/
-		blockCurrent(&(semClock));
+		blockCurrent(&(devices[DEVPERINT + DEVICECNT]));
 	}
 
 	/*finally context switch*/
@@ -353,7 +325,7 @@ HIDDEN void passUpOrDie(int except){
 	/*need to switch the process*/
 	
 	/*first need to give it time*/
-	intervalSwitch(time);
+	intervalSwitch(QUANTUM);
 	/*call switchContext and switch it to the currentproc*/
 	contextSwitch(currentproc);
 

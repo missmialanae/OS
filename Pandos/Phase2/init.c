@@ -3,7 +3,6 @@
 #include "../h/types.h"
 #include "../h/asl.h"
 #include "../h/pcb.h"
-#include "../h/init.h"
 #include "../h/scheduler.h"
 #include "../h/exception.h"
 #include "../h/interrupts.h"
@@ -66,7 +65,7 @@ int main(){
 	passup->exception_stackPtr = KERNAL;
 
 /******************** INITALIZATION OF PHASE 1 *******************************/
-	initPCB();
+	initPcbs();
 	initASL(); 
 
 /******************** INITALIZATION OF NUCLEUS VARIABLES *********************/
@@ -143,7 +142,7 @@ void GenExceptionHander(){
 	while(reason >= 0 && reason <= 13){
 		if(reason == 0){ 
 			/*IO interrupts*/
-			TrapH();
+			trapH();
 		}
 
 		if(reason >= 1 && reason <= 7){

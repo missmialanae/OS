@@ -105,7 +105,7 @@
 #define GENERALEXCEPT	  1
 
 /*clock defines*/
-#define PSEUDO		10000 /*Pseudoclock; likely for the timer interrupt in interrupts.c*/
+#define PSEUDO		100000 /*Pseudoclock; likely for the timer interrupt in interrupts.c*/
 #define QUANTUM 	50000
 #define MAXNUM 		10000
 

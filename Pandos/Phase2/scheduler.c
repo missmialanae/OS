@@ -3,7 +3,6 @@
 #include "../h/asl.h"
 #include "../h/pcb.h"
 #include "../h/init.h"
-#include "../h/scheduler.h"
 #include "../h/exception.h"
 #include "../h/interrupts.h"
 
@@ -29,24 +28,6 @@ extern void contextSwitch(pcb_t *currentproc);
 extern void scheduler();
 extern void intervalSwitch(cpu_t time);
 
-/*setting current process */
-pcb_t *currentproc; 
-
-/*ready queue*/
-pcb_t *readyQueue;
-
-/*for alloting time if needed*/
-cpu_t time; 
-
-/*Process Count*/
-int processcnt;
-
-/*time unit*/
-cpu_t startTOD;
-
-/*Soft-block count*/
-int softBlock;
-
 
 
 void moveState(state_PTR source, state_PTR final){
@@ -58,10 +39,10 @@ void moveState(state_PTR source, state_PTR final){
 	}
 
 	/*once it is found set the source to the final*/
-	source->s_cause = final->s_cause;
-	source->s_entryHI = final->s_entryHI;
-	source->s_status = final->s_status;
-	source->s_pc = source ->s_pc;
+	final->s_cause = source->s_cause;
+	final->s_entryHI = source->s_entryHI;
+	final->s_status = source->s_status;
+	final->s_pc = source->s_pc;
 
 }
 
@@ -71,10 +52,10 @@ void contextSwitch(pcb_t *current){
 	/* Does this actually need need to be a fucntion?*/
 
 	/*need to make sure the current proc is set*/
-	pcb_t *currentproc = current;
+	currentproc = current;
 
 	/*call loadstate*/
-	LDST(&currentproc->p_s);
+	LDST(&current->p_s);
 
 }
 
@@ -96,7 +77,7 @@ void scheduler(){
 	if(removed != NULL){
 		/*just like in exceptions --- is this LDST*/
 
-		intervalSwitch(time);
+		intervalSwitch(QUANTUM);
 
 		/*switch context*/
 		contextSwitch(currentproc);
@@ -118,7 +99,7 @@ void scheduler(){
 
 			currentproc = NULL;
 			/*set the local timer to be a big number*/
-			setTimer(MAXINT); /*do we already know this or do we need to define it?*/
+			setTIMER(MAXINT); /*do we already know this or do we need to define it?*/
 
 			/*need to fix the status now*/
 			currentStatus = ALLOFF;

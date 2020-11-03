@@ -5,7 +5,6 @@
 #include "../h/init.h"
 #include "../h/scheduler.h"
 #include "../h/exception.h"
-#include "../h/interrupts.h"
 #include "/usr/local/include/umps3/umps/libumps.h"
 
 
@@ -21,25 +20,11 @@
  /********************************************************************************/
 
 /*externs*/
+HIDDEN void traphH();
 HIDDEN void plt(cpu_t stopTOD);
 HIDDEN void pseudoInterrupts();
 HIDDEN void IOHandler(int num);
-HIDDEN void traphH();
 
-
-/* the stupid global variable so it will stop giving me errors*/
-
-/*Process Count*/
-int processcnt;
-
-/*Soft-block count*/
-int softBlock;
-
-/*ready queue*/
-pcb_t *readyQueue;
-
-/*setting current process */
-pcb_t *currentproc = NULL; 
 
 /*add these just in case*/
 int deviceNum;
@@ -48,17 +33,42 @@ int interruptLine;
 
 cpu_t semClock; 
 
-/*device semaphores */
-int devices[DEVICECNT + DEVPERINT + 1];
-
-/*time unit*/
-cpu_t startTOD;
-
-/*amt till time slice*/
-cpu_t *sliceCount; /*do I need this now*/
-
 /*bitmapping*/
 int bitMap; 
+
+void trapH(){
+
+	cpu_t time;
+	cpu_t interruptCause; /*cause_t?*/
+	STCK(time);
+	sliceCount = getTIMER();
+
+	/*put biosdatapage into state*/
+	(state_t *) BIOSDATAPAGE; 
+    interruptCause = ((state_t *)BIOSDATAPAGE) -> s_cause;
+
+	
+	/*determining cause of interrupt*/
+	if(interruptCause & 0x00000200 != 0){
+		plt(time);
+	}
+	if(interruptCause & 0x00000400 != 0){
+		pseudoInterrupts();
+	}
+	if(interruptCause & 0x00000800 != 0){
+		IOHandler(DISKINT); 
+	}
+	if(interruptCause & 0x00001000 != 0){
+		IOHandler(FLASHINT);
+	}
+	if(interruptCause & 0x00004000 != 0){
+		IOHandler(PRNTINT);
+	}
+	if(interruptCause & 0x00008000 != 0){
+		IOHandler(TERMINT);
+	}
+
+} /*end of TrapH*/
 
 void plt(cpu_t stopTOD){
 	/*Handles the procedures to handle CPU when it generates a clock interrupt.*/
@@ -224,37 +234,5 @@ void IOHandler(int num){
 
 }
 
-void trapH(){
-
-	cpu_t time;
-	cpu_t interruptCause; /*cause_t?*/
-	STCK(time);
-	sliceCount = getTimer();
-	/*put biosdatapage into state*/
-	(state_t *) BIOSDATAPAGE; 
-    interruptCause = ((state_t *)BIOSDATAPAGE) -> s_cause;
-
-	
-	/*determining cause of interrupt*/
-	if(interruptCause & 0x00000200 != 0){
-		localTimer(time);
-	}
-	if(interruptCause & 0x00000400 != 0){
-		timerInt();
-	}
-	if(interruptCause & 0x00000800 != 0){
-		IOHandler(DISKINT); 
-	}
-	if(interruptCause & 0x00001000 != 0){
-		IOHandler(FLASHINT);
-	}
-	if(interruptCause & 0x00004000 != 0){
-		IOHandler(PRNTINT);
-	}
-	if(interruptCause & 0x00008000 != 0){
-		IOHandler(TERMINT);
-	}
-
-} /*end of TrapH*/
 
 /*****End of IOHandler*****/
