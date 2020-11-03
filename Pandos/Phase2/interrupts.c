@@ -24,7 +24,7 @@
 HIDDEN void plt(cpu_t stopTOD);
 HIDDEN void pseudoInterrupts();
 HIDDEN void IOHandler(int num);
-HIDDEN void TraphH();
+HIDDEN void traphH();
 
 
 /* the stupid global variable so it will stop giving me errors*/
@@ -46,7 +46,7 @@ int deviceNum;
 
 int interruptLine;
 
-semd_t *semClock; 
+cpu_t semClock; 
 
 /*device semaphores */
 int devices[DEVICECNT + DEVPERINT + 1];
@@ -57,12 +57,14 @@ cpu_t startTOD;
 /*amt till time slice*/
 cpu_t *sliceCount; /*do I need this now*/
 
+/*bitmapping*/
 int bitMap; 
 
 void plt(cpu_t stopTOD){
 	/*Handles the procedures to handle CPU when it generates a clock interrupt.*/
 	/*Deals with Quantum. */
 	if(currentproc != NULL){
+
 		currentproc -> p_time = stopTOD - startTOD; /*change the time to the current process*/
 
 		moveState(BIOSDATAPAGE, currentproc->p_s); /*store the processor state using move state*/
@@ -88,11 +90,11 @@ void pseudoInterrupts(){
 	 * nucleus maintained sema4 list called the pseueoclockTick. */
 
 	/*variables*/
-	pcb_t * remove
+	pcb_t *remove;
 
 	/* ACK interrupt using LDIT; this is the pseudoclock tick */
 
-	LDIT(PSEUDO);
+	LDIT(100000);
 
 	/*need to unblock all pcbs*/
 
@@ -103,7 +105,7 @@ void pseudoInterrupts(){
 		insertProcQ(&(readyQueue), remove);
 
 		/*remove it*/
-		removeBlocked(remove->s_semAdd);
+		removeBlocked(remove->p_semAdd);
 
 		/*decrease the softBlock count*/
 		softBlock -= 1;
@@ -126,20 +128,27 @@ void pseudoInterrupts(){
 void IOHandler(int num){
 
 	/*variables*/
-	int deviceReg;
-	int deviceSem;
+
+	devregarea_t *deviceReg;
+
+	/*number for interrupt*/
 	int deviceNum;
-	int deviceSemNum;
+
+	/*sema4 number*/
+	int deviceSem;
+
 	int intStat;
 	int intLine;
-	pcb_t *readyqueue;
-	int devices[DEVICECNT + DEVPERINT + 1];
+
+	/*points to pcb*/
+	pcb_t *ready;
+
+	/*what is this for*/
 	int interrupt_dev;
 
 	/*establish addressing*/
-	/*deviceReg = devregrea_t -> RAMBASEADDR;  */
-	deviceReg = RAMBASEADDR;  
-	bitMap = deviceReg &interrupt_dev[(lineNum - DISKINT)]; 
+	deviceReg = (devregarea_t *) RAMBASEADDR;  
+	bitMap = deviceReg->interrupt_dev[(intLine - DISKINT)]; 
 
 
 	/*bitmapping*/
@@ -170,41 +179,41 @@ void IOHandler(int num){
 		
 	}
 		/*determine sem for device*/
-	deviceSemNum = ((lineNum - DISKINT) * DEVPERINT) + deviceNum;
+	deviceSem= ((intLine - DISKINT) * DEVPERINT) + deviceNum;
 
 		/*case for terminal*/
 	if(intLine = TERMINT){
 
-		intStat = timerInt(deviceSemNum);
+		/*intStat = plt(deviceSem); /*what is timerIntH*/
 	     /*intStat = timerInt(deviceSem);*/
 		
 		
 	}else{
 		
-		intStat = (deviceReg &deviceReg[deviceSemNum]).d_status;
-		intStat = (deviceReg &deviceReg[deviceSemNum]).d_command = ACK;
-		
+		/*intStat = (deviceReg->devreg[deviceSem]).d_status;
+		intStat = (deviceReg->devreg[deviceSem]).d_command = ACK;
+		*/
 		}/*end of special case*/
 
 
 	    /*v the sem*/
-		deviceSem[deviceSemNum] <= 0; 
+		devices[deviceSem] += 1; 
 
 		/*wait for IO already done*/
-		if(deviceSemNum <= 0){ 
+		if(deviceSem <= 0){ 
 
-			p = removeBlocked(&(deviceSem[deviceSemNum]));
+			ready = removeBlocked(&(devices[deviceSem]));
 		}
-		if(p != NULL){
+		if(ready != NULL){
 
-				/*p -> p.s.s.v0 = intStat;  /*save status in ACK */
-			p = intStat;
+			
+			ready = intStat;
 
-			insertProcQ(&readyqueue, p);
+			insertProcQ(&readyQueue, ready);
 
 			softBlock -=1;
 	        /*save stat till sys8*/
-			intStat = deviceStat[deviceSemNum]; 
+			intStat = devices[deviceNum]; 
 
 			/*new proc*/
 			if(currentproc == NULL){ 
@@ -215,7 +224,7 @@ void IOHandler(int num){
 
 }
 
-void TrapH(){
+void trapH(){
 
 	cpu_t time;
 	cpu_t interruptCause; /*cause_t?*/

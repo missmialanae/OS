@@ -32,7 +32,32 @@ extern void waitClock();
 extern void supportPtr();
 
 /*global variable*/
+
+/*Process Count*/
+int processcnt;
+
+/*ready queue*/
+pcb_t *readyQueue;
+
+/*device semaphores */
+int devices[DEVICECNT + DEVPERINT + 1];
+
+/*setting up the main pcb*/
 pcb_t *currentproc = NULL;
+
+/*Soft-block count*/
+int softBlock;
+
+/*sema4 clock*/
+cpu_t semClock; 
+
+/*for alloting time if needed*/
+cpu_t time; 
+
+/*time unit*/
+cpu_t startTOD;
+
+
 
 void pgmTrapH(){
 	
@@ -44,7 +69,7 @@ void tlbTrapH(){
 	passUpOrDie(PGFAULTEXCEPT);
 }
 
-void sysTrap(){
+void sysTrapH(){
 
 	int sys; /* current sys */
 	state_PTR state = (state_PTR)BIOSDATAPAGE;
@@ -54,7 +79,7 @@ void sysTrap(){
 	sys = state->s_a0;
 
 	/*in user mode*/
-	if((sys > = 1) && (sys <= 8) && (user != 0)){
+	if((sys >= 1) && (sys <= 8) && (USER != 0)){
 		/*call the program traph*/
 		pgmTrapH(); 
 	}
@@ -64,7 +89,7 @@ void sysTrap(){
 
 	/*need to prevent the loop*/
 
-	currentproc->p_s.s_pc = currentproc->p_s.s_pc + 4;
+	currentproc->p_s->s_pc += 4;
 
 	/*call switch to change the state depending on the value*/
 	switch(sys){
@@ -107,7 +132,7 @@ void sysTrap(){
 			STCK(currentTime);
 			resulTime = ((currentTime) - startTOD) + currentproc->p_time;
 
-			currentproc->p_s.s_v0 = resulTime;
+			currentproc->p_s->s_v0 = resulTime;
 
 			/*need to return control at the end */
 
@@ -140,10 +165,10 @@ void createProcess(){
 	/*sys 1*/
 
 	/*allocate a new pcb*/
-	pcb_t *created = allocPCB();
+	pcb_t *created = allocPcb();
 
 	/*need a support structureand set it to the currentproc's a2*/
-	support_t *support = (support_t *)currentproc->p_s.s_a2;
+	support_t *support = (support_t *)currentproc->p_s->s_a2;
 
 	if(created == NULL){
 		/*need to switch the context*/
@@ -154,7 +179,7 @@ void createProcess(){
 	processcnt += 1;
 
 	/*p_s from a1 */
-	moveState((state_Ptr)currentproc->p_s.sa2, &(created->p_s));
+	moveState((state_t *)currentproc->p_s->s_a2, &(created->p_s));
 
 	/*p_supportStruct is set to NULL*/
 	created->p_supportStruct = NULL;
@@ -167,14 +192,14 @@ void createProcess(){
 	if((support == NULL)|| (support == 0)){
 		insertProcQ(&(readyQueue), created);
 		insertChild(&(currentproc), created);
-		currentproc->p_s.s_v0 = 1;
+		currentproc->p_s->s_v0 = 1;
 	}
 
 	/*time*/
 	created->p_time = 0; 
 
 	/*p_semADD is set to NULL*/
-	created -> p_semADD == NULL; 
+	created -> p_semAdd == NULL; 
 
 	/*need to switch Context*/
 	contextSwitch(currentproc);
@@ -188,13 +213,13 @@ void passeren(){
 	sema4 to be P'ed in a1, and then executing the SYSCALL instructions */
 
 	/*pointer to a sem4 value* and set it to the currentproc's a1 */
-	int *sem = currentproc->p_s.s_a1;
+	int *sem = currentproc->p_s->s_a1;
 	*sem -=1;
 
 	/*need to block and invoke scheduler*/
 	if(*sem < 0){
 
-		blockCurrent(&sem; currentproc);
+		blockCurrent(&(sem));
 
 		scheduler();
 	}
@@ -212,7 +237,7 @@ void verhogen(){
 	pcb_t *temp; 
 
 	/*thing as passeren()*/
-	int *sem = currentproc->p_s.s_a1;
+	int *sem = currentproc->p_s->s_a1;
 	*sem +=1;
 
 	if (sem <= 0){
@@ -222,7 +247,7 @@ void verhogen(){
 
 		if (temp != NULL){
 
-			insertProcQ(&readyQueue, temp);
+			insertProcQ(&(readyQueue), temp);
 		}
 	}
 
@@ -240,17 +265,17 @@ void waitIO(){
 	/*match the interrupt numbers with the device*/
 
 	/*need to set interrupts to a1*/
-	interruptLine = (int) currentproc->p_s.s_a1;
+	interruptLine = (int) currentproc->p_s->s_a1;
 
 	/*need to set device number to a2*/
-	deviceNum = (int) currentproc->p_s.s_a2;
+	deviceNum = (int) currentproc->p_s->s_a2;
 
 	/*convert devices to sema4 */
 	deviceNum += ((interruptLine - DISKINT) * DEVPERINT);/*find which device your in*/
 
 	/*terminal reading*/
 
-	if((interruptLine = TERMINT) && (currentproc->p_s.s_a3)){
+	if((interruptLine = TERMINT) && (currentproc->p_s->s_a3)){
 		deviceNum = deviceNum + DEVPERINT;
 	}
 
@@ -265,7 +290,7 @@ void waitIO(){
 		blockCurrent(&(devices[deviceNum]));
 		scheduler();
 	}else{
-		currentproc->p_s.s_v0 = devStat[deviceNum];
+		currentproc->p_s->s_v0 = devices[deviceNum];
 
 		/*another switch*/
 		contextSwitch(currentproc);
@@ -277,12 +302,12 @@ void waitIO(){
 void waitClock(){
 
 	/*take one off of the clock sem4*/
-	clockSem -=1; 
+	semClock -=1; 
 
 	/*need to block current process*/
-	if(clockSem < 0){
+	if(semClock < 0){
 		/*now block it*/
-		blockCurrent(&(clockSem));
+		blockCurrent(&(semClock));
 	}
 
 	/*finally context switch*/
@@ -300,7 +325,7 @@ void supportPtr(){
 	support = currentproc->p_supportStruct;
 
 	/*setting currentproc's v0 to be support*/
-	currentproc->p_s.s_v0 = support;
+	currentproc->p_s->s_v0 = support;
 
 	/*now switch the context*/
 	contextSwitch(currentproc);
@@ -313,10 +338,11 @@ HIDDEN void passUpOrDie(int except){
 	/*check to make sure the support is not null*/
 	if(currentproc->p_supportStruct != NULL){
 		/*if it is not null kill it*/
-		moveState((state_PTR)BIOSDATAPAGE, &(currentproc->p_supportStruct->sup_except[except]));
-		LDCXT(currentproc->p_supportStruct->sup_exceptContext[except].c_stackPtr), 
+		moveState((state_t *)BIOSDATAPAGE, &(currentproc->p_supportStruct->sup_exceptState[except]));
+
+		LDCXT(currentproc->p_supportStruct->sup_exceptContext[except].c_stackPtr, 
 		currentproc->p_supportStruct->sup_exceptContext[except].c_status,
-		currentproc->p_supportStruct->sup_except[except].c_pc;
+		currentproc->p_supportStruct->sup_exceptContext[except].c_pc);
 	}
 
 	/*if it is null send it to the passup vector*/
@@ -327,46 +353,10 @@ HIDDEN void passUpOrDie(int except){
 	/*need to switch the process*/
 	
 	/*first need to give it time*/
-	intervalSwitch(currentproc; time);
+	intervalSwitch(time);
 	/*call switchContext and switch it to the currentproc*/
 	contextSwitch(currentproc);
 
-}
-
-
-int sycallHandler(){ /*do I need this*/
-	/*this function will deal with the main calling of the sycall
-	it will decided which syscall it will use*/
-
-	/*need to check kernel mode status*/
-
-	/*if( in kernel mode){ do the calls down below}*/
-
-	/*request a SYS1 */
-	int retValue = SYSCALL(CREATEPROCESS, state_t *statep, 
-		support_t * supportp, 0);
-
-	/*request SYS2*/
-	SYSCALL (terminateProcess, 0, 0, 0);
-
-	/*request SYS 3*/
-	SYSCALL (PASSEREN, int *semaddr, 0, 0);
-
-	/*request SYS 4*/
-	SYSCALL (VERHOGEN, int *semaddr, 0, 0);
-
-	/*request SYS 5*/ 
-
-	/*request SYS 6*/
-	cpu_t cpuTime = SYSCALL (GetCPU, 0, 0, 0);
-
-	/*request SYS 7*/
-	support_t *sPtr = SYSCALL (WaitClock, 0, 0, 0);
-
-	/*request SYS 8*/
-	support_t *sPtr = SYSCALL (GETSUPPORTPTR, 0, 0, 0);
-
-	/*if( in user mode){call program trap}*/
 }
 
 void blockCurrent(int *blockSem){
@@ -380,7 +370,7 @@ void blockCurrent(int *blockSem){
 
 	/*set the currentproc's time to the new stopTOD */
 	currentproc->p_time += ((stopTOD)- startTOD);
-	insertBlock(blockSem, currentproc);
+	insertBlocked(blockSem, currentproc);
 
 	/*set the current to NULL*/
 	currentproc = NULL;
@@ -412,7 +402,7 @@ void removeProcess(pcb_t *proc){
 	}
 
 	/*if the process is on the ready queue*/
-	if(proc->p_semADD == NULL){
+	if(proc->p_semAdd == NULL){
 		outProcQ(&(readyQueue), proc);
 	}
 

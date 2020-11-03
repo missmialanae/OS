@@ -14,7 +14,7 @@
 #define pcb_PTR			pcb_t*
 #define semd_PTR		semd_t*
 #define MAXINT          0xFFFFFFFF
-#define MAX /*idk what to set this too*/
+
 
 
 /* timer, timescale, TOD-LO and other bus regs */
@@ -107,9 +107,20 @@
 /*clock defines*/
 #define PSEUDO		10000 /*Pseudoclock; likely for the timer interrupt in interrupts.c*/
 #define QUANTUM 	50000
-#define MAX /*idk what to set this too*/
+#define MAXNUM 		10000
 
+/*defining the syscalls*/
+#define CREATEPROCESS 		1
+#define TERMINATEPROCESS 	2
+#define PASSEREN 			3
+#define VERHOGEN 			4
+#define WAITIO				5
+#define GETTIME				6
+#define CLOCKWAIT 			7
+#define GETSUPPORTPTR		8
 
+/*user mode*/
+#define USER 1
 
 /*Interval Timer*/
 

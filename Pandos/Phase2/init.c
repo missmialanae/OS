@@ -45,7 +45,7 @@ pcb_t *currentproc;
 int devices[DEVICECNT + DEVPERINT + 1];
 
 /*time unit*/
-cpu_t *startTOD;
+cpu_t startTOD;
 
 /*amt till time slice*/
 cpu_t *sliceCount; /*do I need this now*/
@@ -84,7 +84,7 @@ int main(){
 
 	/*initialize I/O and clock semaphores*/
 
-	semd_t *semClock = 0; /*is this actually a clock or is it an int?*/
+	cpu_t semClock = 0; /*is this actually a clock or is it an int?*/
 	for(i = 0; i < DEVICECNT; i++){
 		devices[i] = 0;
 	}
@@ -152,7 +152,7 @@ void GenExceptionHander(){
 
 		if(reason == 8 ){
 			/*syscalls*/
-			sysTrap();
+			sysTrapH();
 		}
 
 		/*anything else*/

@@ -9,13 +9,17 @@
 
 #include "../h/const.h"
 
+#define STATEREGNUM	31
 typedef signed int cpu_t;
-
-
 typedef unsigned int memaddr;
 
 
-#define STATEREGNUM	31
+typedef struct context_t {
+	unsigned int c_stackPtr,  /* stack pointer value*/
+				 c_status,	  /* status reg value*/
+				 c_pc; 		  /* PC address*/
+} context_t;
+
 typedef struct state_t {
 	unsigned int	s_entryHI;
 	unsigned int	s_cause;
@@ -25,7 +29,16 @@ typedef struct state_t {
 
 } state_t, *state_PTR;
 
-/* process control block type */
+typedef struct support_t {
+	int sup_asid; 
+	state_t sup_exceptState[2];
+	context_t sup_exceptContext[2];
+} support_t;
+
+/* Exceptions related constants */
+#define PGFAULTEXCEPT 0
+#define GENERALEXCEPT 1
+
 typedef struct pcb_t {
 /* process queue fields */
 struct pcb_t *p_next, /* pointer to next entry */
@@ -36,24 +49,15 @@ struct pcb_t *p_next, /* pointer to next entry */
 			*p_child, /* pointer to 1st child */
 			*p_sib, /* pointer to sibling */
 			*p_prevSib; /*point ot past child*/
-			
+support_t	*p_supportStruct;
 
 /* process status information */
 state_t 	*p_s; /* processor state */
 cpu_t 		*p_time; /* cpu time used by proc */
 int 		*p_semAdd; /* pointer to sema4 on */
 						/* which process blocked */
-/* support layer information */
-/* ptr to support struct */
 } pcb_t;
 
-/*semaphore descriptor type */
-typedef struct semd_t {
-	struct semd_t *s_next;   /*next element on the ASL */
-	int 		  *s_semAdd; /*pointer to the sempahore */
-	pcb_t		  *s_procQ;  /* tail pointer to a */
-				   		 /*process queue */
-} semd_t; 
 
 /* Device Register */
 typedef struct {
@@ -63,13 +67,6 @@ typedef struct {
 	unsigned int d_data1;
 } device_t;
 
-#define t_recv_status		d_status
-#define t_recv_command		d_command
-#define t_transm_status		d_data0
-#define t_transm_command	d_data1
-
-
-/* Bus Register Area */
 typedef struct {
 	unsigned int rambase;
 	unsigned int ramsize;
@@ -88,6 +85,11 @@ typedef struct {
 } devregarea_t ;
 
 
+#define t_recv_status		d_status
+#define t_recv_command		d_command
+#define t_transm_status		d_data0
+#define t_transm_command	d_data1
+
 /* Pass Up Vector */
 typedef struct passupvector {
     unsigned int tlb_refll_handler;
@@ -95,19 +97,6 @@ typedef struct passupvector {
     unsigned int execption_handler;
     unsigned int exception_stackPtr;
 } passupvector_t;
-
-typedef struct context_t {
-	unsigned int c_stackPtr,  /* stack pointer value*/
-				 c_status,	  /* status reg value*/
-				 c_pc; 		  /* PC address*/
-} context_t;
-
-typedef struct support_t{
-	int 		sup_asid; 				/*Process ID (asid)*/
-	state_t 	sup_exceptState[2]; 	/*stored except states*/
-	context_t 	sup_exceptContext[2]; 	/*pass up contexts*/
-} support_t; 
-
 
 #define	s_at	s_reg[0]
 #define	s_v0	s_reg[1]

@@ -15,13 +15,8 @@
 HIDDEN void plt(cpu_t stopTOD);
 HIDDEN void pseudoInterrupts();
 HIDDEN void IOHandler(int num);
+HIDDEN void trapH();
 
-extern int p; 
-/*extern pcb_t *currentproc = NULL;*/ 
-extern deviceStat;
-/*extern bitMap;*/
-extern semClock;
-extern int intLine;
 
 
 

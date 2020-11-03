@@ -9,12 +9,9 @@
 */
 #include "../h/types.h"
 
-
-
-
 extern void moveState(state_PTR source, state_PTR final);
 extern void contextSwitch(pcb_t *currentproc);
 extern void scheduler();
-extern void intervalSwitch(pcb_t current; cpu_t time);
+extern void intervalSwitch(cpu_t time);
 
 #endif

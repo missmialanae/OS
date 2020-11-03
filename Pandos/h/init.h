@@ -13,26 +13,4 @@ extern void uTLB_RefillHandler ();
 extern void test();
 extern void GenExceptionHander();
 
-/*Process Count*/
-extern int processcnt;
-
-/*Soft-block count*/
-extern int softBlock;
-
-/*ready queue*/
-extern pcb_t *readyQueue;
-
-/*setting current process */
-extern pcb_t *currentproc; 
-
-/*device semaphores */
-extern int devices[DEVICECNT + DEVPERINT + 1];
-
-/*time unit*/
-extern cpu_t startTOD;
-
-/*amt till time slice*/
-extern cpu_t sliceCount; /*do I need this now*/
-
-
 #endif

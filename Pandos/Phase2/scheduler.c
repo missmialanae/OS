@@ -27,7 +27,26 @@
 extern void moveState(state_PTR source, state_PTR final);
 extern void contextSwitch(pcb_t *currentproc);
 extern void scheduler();
-extern void intervalSwitch(pcb_t current; cpu_t time);
+extern void intervalSwitch(cpu_t time);
+
+/*setting current process */
+pcb_t *currentproc; 
+
+/*ready queue*/
+pcb_t *readyQueue;
+
+/*for alloting time if needed*/
+cpu_t time; 
+
+/*Process Count*/
+int processcnt;
+
+/*time unit*/
+cpu_t startTOD;
+
+/*Soft-block count*/
+int softBlock;
+
 
 
 void moveState(state_PTR source, state_PTR final){
@@ -35,24 +54,24 @@ void moveState(state_PTR source, state_PTR final){
 
 	/*search through the states to find the prooper state*/
 	for(i=0; i < STATEREGNUM; i++){
-		final->s_reg[i] = source->s_reg[i]
+		final->s_reg[i] = source->s_reg[i];
 	}
 
 	/*once it is found set the source to the final*/
 	source->s_cause = final->s_cause;
-	source->entryHI = final->s_entryHI;
+	source->s_entryHI = final->s_entryHI;
 	source->s_status = final->s_status;
 	source->s_pc = source ->s_pc;
 
 }
 
-void contextSwitch(pcb_t *currentproc){
+void contextSwitch(pcb_t *current){
 
 	/*switches to the process that needed to be in control. Basically it is our loadstate caller.*/
 	/* Does this actually need need to be a fucntion?*/
 
 	/*need to make sure the current proc is set*/
-	pcb_t *currentproc = currentproc;
+	pcb_t *currentproc = current;
 
 	/*call loadstate*/
 	LDST(&currentproc->p_s);
@@ -77,7 +96,7 @@ void scheduler(){
 	if(removed != NULL){
 		/*just like in exceptions --- is this LDST*/
 
-		intervalSwitch(*remove, time);
+		intervalSwitch(time);
 
 		/*switch context*/
 		contextSwitch(currentproc);
@@ -99,11 +118,11 @@ void scheduler(){
 
 			currentproc = NULL;
 			/*set the local timer to be a big number*/
-			setTimer(MAX); /*do we already know this or do we need to define it?*/
+			setTimer(MAXINT); /*do we already know this or do we need to define it?*/
 
 			/*need to fix the status now*/
 			currentStatus = ALLOFF;
-			currentproc->s_status = currentStatus; /*is this allowed*/
+			currentproc->p_s->s_status = currentStatus; /*is this allowed*/
 
 			/*enter a wait state*/
 			WAIT();
@@ -114,7 +133,7 @@ void scheduler(){
 
 	PANIC();
 }
-void intervalSwitch(pcb_t current; cpu_t time){
+void intervalSwitch(cpu_t time){
 	/*basically this should prepare the interval timer for given pcb. You should be able*/
 	/*to call this when you need to load a new process, and for clock and i/o interrupts*/
 
