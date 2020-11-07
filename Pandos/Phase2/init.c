@@ -27,6 +27,7 @@
 extern void uTLB_RefillHandler();
 extern void test();
 extern void GenExceptionHander();
+extern int debuggerA();
 
 /*Process Count*/
 int processcnt;
@@ -49,78 +50,96 @@ cpu_t startTOD;
 /*amt till time slice*/
 cpu_t *sliceCount; /*do I need this now*/
 
+/*initialize I/O and clock semaphores*/
+cpu_t semClock;
 
 int main(){
-	int i; 
-	pcb_t *ram = allocPcb();
-	unsigned int RAMTOP; /*something for the ram*/
-
-
+	int i; /*for device for loop*/
+	pcb_t *current; /*name of first process*/
+	memaddr topOfRAM; /*used for RAMTOP*/
+	passupvector_t *passup; /*passup vector*/
 
 /******************** PASS UP VECTOR *****************************************/
-	passupvector_t *passup =(passupvector_t *)PASSUPVECTOR;
+	passup =(passupvector_t *)PASSUPVECTOR;
 	passup->tlb_refll_handler = (memaddr) uTLB_RefillHandler; /*why not uTLB_RefullHandler?*/
 	passup->tlb_refll_stackPtr = KERNAL;
 	passup->execption_handler = (memaddr) GenExceptionHander; 
 	passup->exception_stackPtr = KERNAL;
 
 /******************** INITALIZATION OF PHASE 1 *******************************/
+	debuggerA(1);
 	initPcbs();
-	initASL(); 
+	debuggerA(2);
+	initASL();
+	debuggerA(3);
 
 /******************** INITALIZATION OF NUCLEUS VARIABLES *********************/
 	/*Process Count*/
 	processcnt = 0;
-
+	debuggerA(4);
 	/*Soft-block count*/
 	softBlock = 0;
-
+	debuggerA(5);
 	/*ready queue*/
 	readyQueue = mkEmptyProcQ();
+	debuggerA(6);
 
 	/*setting current process */
 	currentproc = NULL; 
+	debuggerA(7);
 
 	/*initialize I/O and clock semaphores*/
+	cpu_t semClock = 0; 
+	debuggerA(8);
 
-	cpu_t semClock = 0; /*is this actually a clock or is it an int?*/
-	for(i = 0; i < DEVICECNT; i++){
+	/*creating the semd devices*/
+
+	devices[DEVICECNT+DEVICECNT] = 0; /*use for semClock*/
+	debuggerA(9);
+
+	for(i = 0; i < (DEVICECNT + DEVPERINT); i++){
+		debuggerA(10);
 		devices[i] = 0;
+		debuggerA(11);
 	}
 
-/******************** LOAD INTERVAL TIMER ************************************/
-
-	LDIT(5000); /*set interval time to 100 milliseconds*/
-
-
-/******************** INSTANTIATE SINGLE PROCESS *****************************/
-
+	LDIT(PSEUDO); /*set interval time to 100 milliseconds*/
+	debuggerA(12);
 
 /******************** SCHEDULER **********************************************/
 
-	/*RAMTOP set up*/
-
-	memaddr topOfRAM; 
-
+	/*creating the first process*/
+	current = allocPcb();
+	debuggerA(13);
+	/*using C macro to set up the location of topOfRAM*/
 	RAMTOP(topOfRAM);
-	if(ram != NULL){
-		ram->p_s->s_t9 = (memaddr) test;
-		ram->p_s->s_pc = ram->p_s->s_t9;
-		ram->p_s->s_status = ALLOFF | IEPON | IMON | TEBITONL;
-		ram->p_s->s_sp = topOfRAM; /*setting the stack pointer*/
-		processcnt += 1;
-		insertProcQ(&readyQueue, ram);
-
-		/*are we actually calling scheduler or do we need to call contextSwitch?*/
+	debuggerA(14);
+	if(current != NULL){
+		/*start the test*/
+		debuggerA(15);
+		current->p_s.s_t9 = (memaddr) test;
+		debuggerA(16);
+		current->p_s.s_pc = (memaddr) test;
+		debuggerA(17);
+		current->p_s.s_status = ALLOFF | IEPON | IMON | TEBITONL; /* turning bits on*/
+		debuggerA(18);
+		current->p_s.s_sp = topOfRAM; /*setting the stack pointer*/
+		debuggerA(19);
+		processcnt += 1; /*need to add this process to the count*/
+		debuggerA(20);
+		insertProcQ(&(readyQueue), current);
+		debuggerA(21);
 		scheduler();
+		debuggerA(22);
 	}
 
 	else{
-
+		debuggerA(23);
 		PANIC();
 	}
 
 	/*Mikey said so*/
+	debuggerA(24);
 	return 0;
 
 }/*end of main*/
@@ -130,16 +149,15 @@ int main(){
 void GenExceptionHander(){
 	/*looks at the cause register (stored by BIOS) and points to which syscall it is*/
 
-	/*variables*/
-	state_t *state;
-	int reason;
+	/*going to need reason and state which is declared at global so I can use it in the debug statements*/
+	/*for genexceptionhandler*/ 
+	state_t *state = (state_t *)BIOSDATAPAGE; 
 
-	/*setting the variables*/
-	state = (state_PTR)BIOSDATAPAGE;
-	reason = (state->s_cause); 
+	/*used to find reason for genexceptionhandler*/ 
+	int reason = (int) ((state->s_cause & GETCAUSE) >> 2);
 
 	/*if it is one of these send it to one of these*/
-	while(reason >= 0 && reason <= 13){
+	while(reason >= 0 && reason <= 3){
 		if(reason == 0){ 
 			/*IO interrupts*/
 			trapH();
@@ -158,4 +176,10 @@ void GenExceptionHander(){
 		pgmTrapH();
 	}
 
+	return;
+}
+
+/*debug functions*/
+int debuggerA(int a){
+	a = 0;
 }

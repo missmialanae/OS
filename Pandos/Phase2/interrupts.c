@@ -77,7 +77,7 @@ void plt(cpu_t stopTOD){
 
 		currentproc -> p_time = stopTOD - startTOD; /*change the time to the current process*/
 
-		moveState(BIOSDATAPAGE, currentproc->p_s); /*store the processor state using move state*/
+		moveState(BIOSDATAPAGE, &(currentproc->p_s)); /*store the processor state using move state*/
 
 		scheduler(); /*when its the end of processor's time (sliceCount), invoke the schedular*/
 

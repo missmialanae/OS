@@ -11,6 +11,7 @@
  *	Processing (Child)
  * 
  ****************************************************************************/
+extern void initPcbs();
 
 /*global pointer for free list*/
 HIDDEN pcb_t *pcbfree_h;
@@ -57,7 +58,7 @@ pcb_t* allocPcb (){
 	/*check to see if the pcbfree list is empty*/ 
 	if (pcbfree_h == (NULL)){
 		return NULL;
-} /*set the pcb and give it's information
+	} /*set the pcb and give it's information
 
 	/make sure it's not being used*/
 

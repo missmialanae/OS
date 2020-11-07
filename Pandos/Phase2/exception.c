@@ -61,7 +61,7 @@ void sysTrapH(){
 
 	/*need to prevent the loop*/
 
-	currentproc->p_s->s_pc += 4;
+	currentproc->p_s.s_pc += 4;
 
 	/*call switch to change the state depending on the value*/
 	switch(sys){
@@ -104,7 +104,7 @@ void sysTrapH(){
 			STCK(currentTime);
 			resulTime = ((currentTime) - startTOD) + currentproc->p_time;
 
-			currentproc->p_s->s_v0 = resulTime;
+			currentproc->p_s.s_v0 = resulTime;
 
 			/*need to return control at the end */
 
@@ -140,7 +140,7 @@ void createProcess(){
 	pcb_t *created = allocPcb();
 
 	/*need a support structureand set it to the currentproc's a2*/
-	support_t *support = (support_t *)currentproc->p_s->s_a2;
+	support_t *support = (support_t *)currentproc->p_s.s_a2;
 
 	if(created == NULL){
 		/*need to switch the context*/
@@ -151,7 +151,7 @@ void createProcess(){
 	processcnt += 1;
 
 	/*p_s from a1 */
-	moveState((state_t *)currentproc->p_s->s_a2, &(created->p_s));
+	moveState((state_t *)currentproc->p_s.s_a2, &(created->p_s));
 
 	/*p_supportStruct is set to NULL*/
 	created->p_supportStruct = NULL;
@@ -161,10 +161,11 @@ void createProcess(){
 	if((support != NULL)|| (support != 0)){
 		created->p_supportStruct = support; /*setting created's support structure to be support*/
 	}
+	
 	if((support == NULL)|| (support == 0)){
 		insertProcQ(&(readyQueue), created);
 		insertChild(&(currentproc), created);
-		currentproc->p_s->s_v0 = 1;
+		currentproc->p_s.s_v0 = 1;
 	}
 
 	/*time*/
@@ -185,7 +186,7 @@ void passeren(){
 	sema4 to be P'ed in a1, and then executing the SYSCALL instructions */
 
 	/*pointer to a sem4 value* and set it to the currentproc's a1 */
-	int *sem = currentproc->p_s->s_a1;
+	int *sem = currentproc->p_s.s_a1;
 	*sem -=1;
 
 	/*need to block and invoke scheduler*/
@@ -209,7 +210,7 @@ void verhogen(){
 	pcb_t *temp; 
 
 	/*thing as passeren()*/
-	int *sem = currentproc->p_s->s_a1;
+	int *sem = currentproc->p_s.s_a1;
 	*sem +=1;
 
 	if (sem <= 0){
@@ -237,17 +238,17 @@ void waitIO(){
 	/*match the interrupt numbers with the device*/
 
 	/*need to set interrupts to a1*/
-	interruptLine = (int) currentproc->p_s->s_a1;
+	interruptLine = (int) currentproc->p_s.s_a1;
 
 	/*need to set device number to a2*/
-	deviceNum = (int) currentproc->p_s->s_a2;
+	deviceNum = (int) currentproc->p_s.s_a2;
 
 	/*convert devices to sema4 */
 	deviceNum += ((interruptLine - DISKINT) * DEVPERINT);/*find which device your in*/
 
 	/*terminal reading*/
 
-	if((interruptLine = TERMINT) && (currentproc->p_s->s_a3)){
+	if((interruptLine = TERMINT) && (currentproc->p_s.s_a3)){
 		deviceNum = deviceNum + DEVPERINT;
 	}
 
@@ -262,7 +263,7 @@ void waitIO(){
 		blockCurrent(&(devices[deviceNum]));
 		scheduler();
 	}else{
-		currentproc->p_s->s_v0 = devices[deviceNum];
+		currentproc->p_s.s_v0 = devices[deviceNum];
 
 		/*another switch*/
 		contextSwitch(currentproc);
@@ -297,7 +298,7 @@ void supportPtr(){
 	support = currentproc->p_supportStruct;
 
 	/*setting currentproc's v0 to be support*/
-	currentproc->p_s->s_v0 = support;
+	currentproc->p_s.s_v0 = support;
 
 	/*now switch the context*/
 	contextSwitch(currentproc);
