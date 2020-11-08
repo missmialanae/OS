@@ -44,7 +44,7 @@
 #define DEVPERINT		  8		  /* devices per interrupt line */
 #define DEVREGLEN		  4		  /* device register field length in bytes, and regs per dev */	
 #define DEVREGSIZE	      16 	  /* device register size in bytes */
-#define DEVICECNT 		  48
+#define DEVICECNT 		  (DEVINTNUM * DEVPERINT)
 /* device register field number for non-terminal devices */
 #define STATUS			  0
 #define COMMAND			  1
@@ -85,7 +85,7 @@
 #define	PASSUPVECTOR	0x0FFFF900
 
 /*these need to be set with values but I am confused on the proper value*/
-#define KERNAL			0x20000000
+#define KERNAL			0x20001000
 #define GENEXE		 	0x00000080
 #define REFILL 			0x00000000
 
@@ -95,10 +95,17 @@
 #define OFF 			0
 
 /*idk what to set these to */
-#define IEPON			0
-#define IMON			0
-#define TEBITONL		0
-#define SHIFTS     		0
+#define IEPON			0x00000004
+#define IMON			0x0000FF00
+#define TEBITONL		0X08000000
+#define SHIFTS     		2
+
+/*user mode*/
+#define USER 		0x00000008
+
+/*cause register*/
+#define GETCAUSE 	0x0000007C
+
 
 /* Exceptions related constants */
 #define	PGFAULTEXCEPT	  0
@@ -120,7 +127,7 @@
 #define GETSUPPORTPTR		8
 
 /*user mode*/
-#define USER 1
+#define USER 		0x00000008
 
 /*Interval Timer*/
 

@@ -12,6 +12,7 @@
 extern void uTLB_RefillHandler ();
 extern void test();
 extern void GenExceptionHander();
+extern int debuggerA();
 
 /*Process Count*/
 extern int processcnt;
