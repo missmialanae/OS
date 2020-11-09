@@ -105,6 +105,7 @@
 
 /*cause register*/
 #define GETCAUSE 	0x0000007C
+#define BITS 		0X0F
 
 
 /* Exceptions related constants */

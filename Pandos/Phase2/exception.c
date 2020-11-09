@@ -232,6 +232,7 @@ void verhogen(){
 void waitIO(){
 
 	/*variables*/
+	debuggerA(40);
 	int deviceNum;
 	int interruptLine;
 
@@ -261,7 +262,7 @@ void waitIO(){
 	if(devices[deviceNum] < 0){
 		softBlock +=1;
 		blockCurrent(&(devices[deviceNum]));
-		scheduler();
+		
 	}else{
 		currentproc->p_s.s_v0 = devices[deviceNum];
 

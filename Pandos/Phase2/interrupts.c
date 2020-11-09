@@ -17,7 +17,7 @@
  * interval timer and pseudoclock. 
  * 
  *
- /********************************************************************************/
+/********************************************************************************/
 
 /*externs*/
 HIDDEN void traphH();
@@ -136,10 +136,11 @@ void pseudoInterrupts(){
 }
 
 void IOHandler(int num){
+	/*this function will handle any devices that are going to interrupt
 
 	/*variables*/
-
-	devregarea_t *deviceReg;
+	debuggerA(50);
+	volatile devregarea_t *deviceReg;
 
 	/*number for interrupt*/
 	int deviceNum;
@@ -147,14 +148,17 @@ void IOHandler(int num){
 	/*sema4 number*/
 	int deviceSem;
 
-	int intStat;
-	int intLine;
+	/*keeps record of the status*/
+	unsigned int intStat;
+
+	/*keeps hold of the line number*/
+	unsigned int intLine;
 
 	/*points to pcb*/
 	pcb_t *ready;
 
-	/*what is this for*/
-	int interrupt_dev;
+	/*do I need this*/
+	/*int interrupt_dev;*/
 
 	/*establish addressing*/
 	deviceReg = (devregarea_t *) RAMBASEADDR;  
@@ -187,52 +191,73 @@ void IOHandler(int num){
 			deviceNum = 7;
 		}
 		
-	}
-		/*determine sem for device*/
+	}/*finish bitmapping/
+
+	/*determine sem for device*/
 	deviceSem= ((intLine - DISKINT) * DEVPERINT) + deviceNum;
 
 		/*case for terminal*/
 	if(intLine = TERMINT){
+		/*need to first check to see if the terminal is transmit or recieve*/
 
-		/*intStat = plt(deviceSem); /*what is timerIntH*/
-	     /*intStat = timerInt(deviceSem);*/
-		
-		
-	}else{
-		
-		/*intStat = (deviceReg->devreg[deviceSem]).d_status;
-		intStat = (deviceReg->devreg[deviceSem]).d_command = ACK;
-		*/
-		}/*end of special case*/
+		/*get status from register*/
+		intStat = deviceReg->devreg[(deviceSem)].t_transm_status;
 
+		/*need to and it to the 0x0F(which is a constant called BITS)*/
 
-	    /*v the sem*/
-		devices[deviceSem] += 1; 
+		/*if it equals 1 then it is receiving*/
+		if((intStat & BITS) == 1){
+			/*make a copy of the receive status*/
+			intStat = deviceReg->devreg[(deviceSem)].t_recv_status;
+			/*ack the recieve*/
+			deviceReg->devreg[(deviceSem)].t_recv_command = ACK;
 
-		/*wait for IO already done*/
-		if(deviceSem <= 0){ 
+			/*increment the device sem4 number by DEVPERINT*/
+			(deviceSem)+= DEVPERINT;
 
-			ready = removeBlocked(&(devices[deviceSem]));
 		}
+
+		/*If it's 0 then it is transmitting*/
+
+		/*ack the transmit*/
+		deviceReg->devreg[(deviceSem)].t_transm_command = ACK;
+
+		/*return the status*/
+		return intStat;
+
+	}/*end of special terminal case*/
+
+
+    /*v the sem*/
+	devices[deviceSem] += 1; 
+
+	/*wait for IO */
+	if(deviceSem <= 0){ 
+
+		ready = removeBlocked(&(devices[deviceSem]));
+
+		/*there is a process that needs to be unblocked and given status*/
 		if(ready != NULL){
 
-			
-			ready = intStat;
+			/*set the status*/
+			intStat = ready->p_s.s_v0;
 
+			/*insert the ready pcb on the readyQueue*/
 			insertProcQ(&readyQueue, ready);
 
+			/*decrease the softblock count*/
 			softBlock -=1;
-	        /*save stat till sys8*/
-			intStat = devices[deviceNum]; 
-
-			/*new proc*/
-			if(currentproc == NULL){ 
-
-				scheduler();
-			}
 		}
 
+
+        /*save stat till sys8*/
+		intStat = devices[deviceNum]; 
+
+		/*new proc*/
+		if(currentproc == NULL){ 
+
+			scheduler();
+		}
+	}
 }
-
-
 /*****End of IOHandler*****/
