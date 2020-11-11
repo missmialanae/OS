@@ -154,16 +154,15 @@ void GenExceptionHander(){
 	state_t *state = (state_t *)BIOSDATAPAGE; 
 
 	/*used to find reason for genexceptionhandler*/ 
-	int reason = (int) ((state->s_cause & GETCAUSE) >> 2);
+	int reason = (int) (((state->s_cause) & GETCAUSE) >> 2);
 
 	/*if it is one of these send it to one of these*/
-	while(reason >= 0 && reason <= 3){
 		if(reason == 0){ 
 			/*IO interrupts*/
 			trapH();
 		}
 
-		if(reason >= 1 && reason <= 7){
+		if(reason >= 1 && reason <= 3){
 			tlbTrapH();
 		}
 
@@ -174,11 +173,7 @@ void GenExceptionHander(){
 
 		/*anything else*/
 		pgmTrapH();
-	}
-
-	return;
 }
-
 /*debug functions*/
 int debuggerA(int a){
 	a = 0;

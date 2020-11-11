@@ -51,7 +51,7 @@ void sysTrapH(){
 	sys = state->s_a0;
 
 	/*in user mode*/
-	if((sys >= 1) && (sys <= 8) && (USER != 0)){
+	if((sys >= 1) && (sys <= 8) && ((state-> s_status & USER) != 0)){
 		/*call the program traph*/
 		pgmTrapH(); 
 	}
@@ -234,7 +234,9 @@ void waitIO(){
 	/*variables*/
 	debuggerA(40);
 	int deviceNum;
+	debuggerA(41);
 	int interruptLine;
+	debuggerA(42);
 
 	/*match the interrupt numbers with the device*/
 
@@ -249,7 +251,7 @@ void waitIO(){
 
 	/*terminal reading*/
 
-	if((interruptLine = TERMINT) && (currentproc->p_s.s_a3)){
+	if((interruptLine = TERMINT) && (currentproc->p_s.s_a3 == TRUE)){
 		deviceNum = deviceNum + DEVPERINT;
 	}
 
@@ -338,7 +340,6 @@ void blockCurrent(int *blockSem){
 	to switch over the process*/
 
 	/*variables*/
-
 	cpu_t stopTOD; 
 	STCK(stopTOD);
 

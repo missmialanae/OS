@@ -96,6 +96,7 @@
 
 /*idk what to set these to */
 #define IEPON			0x00000004
+#define IECON			0X08000001
 #define IMON			0x0000FF00
 #define TEBITONL		0X08000000
 #define SHIFTS     		2
@@ -105,12 +106,18 @@
 
 /*cause register*/
 #define GETCAUSE 	0x0000007C
+#define CLEAR
 #define BITS 		0X0F
 
 
 /* Exceptions related constants */
-#define	PGFAULTEXCEPT	  0
-#define GENERALEXCEPT	  1
+#define	PGFAULTEXCEPT	  	0
+#define GENERALEXCEPT	  	1
+/*keeping these just in case*/
+#define MAXPAGE 			3
+#define MINPAGE				0
+#define IO 					0
+#define SYS 				8
 
 /*clock defines*/
 #define PSEUDO		100000 /*Pseudoclock; likely for the timer interrupt in interrupts.c*/
@@ -127,10 +134,6 @@
 #define CLOCKWAIT 			7
 #define GETSUPPORTPTR		8
 
-/*user mode*/
-#define USER 		0x00000008
-
-/*Interval Timer*/
 
 /* operations */
 #define	MIN(A,B)		((A) < (B) ? A : B)

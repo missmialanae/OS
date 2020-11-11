@@ -75,7 +75,7 @@ void scheduler(){
 	/********* if the ready queue is empty ************/
 
 	/*make sure the ready queue is not empty*/
-	if(!emptyProcQ(&readyQueue)){
+	if(!emptyProcQ(readyQueue)){
 		debuggerA(73);
 		/*if the readyQueue is not empty*/
 		/*if I found one I need to remove it from the ready queue*/
@@ -92,7 +92,7 @@ void scheduler(){
 
 	}
 
-	if(emptyProcQ(&readyQueue)){
+	if(emptyProcQ(readyQueue)){
 		debuggerA(77);
 		/*if the readyQueue is empty*/
 
@@ -114,7 +114,7 @@ void scheduler(){
 			setTIMER(MAXINT); /*do we already know this or do we need to define it?*/
 
 			/*need to fix the status now*/
-			currentStatus = ALLOFF | IEPON | IMON | TEBITONL;
+			currentStatus = ALLOFF | IECON | IMON | TEBITONL;
 			debuggerA(82);
 			setSTATUS(currentStatus);
 			debuggerA(83); 

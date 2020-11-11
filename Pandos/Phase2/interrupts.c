@@ -27,14 +27,14 @@ HIDDEN void IOHandler(int num);
 
 
 /*add these just in case*/
-int deviceNum;
+int deviceNum;/*for the device number*/
 
 int interruptLine;
 
 cpu_t semClock; 
 
 /*bitmapping*/
-int bitMap; 
+unsigned int bitMap; 
 
 void trapH(){
 
@@ -49,7 +49,7 @@ void trapH(){
 
 	
 	/*determining cause of interrupt*/
-	if(interruptCause & 0x00000200 != 0){
+	if((interruptCause & 0x00000200) != 0){
 		plt(time);
 	}
 	if(interruptCause & 0x00000400 != 0){
@@ -64,7 +64,7 @@ void trapH(){
 	if(interruptCause & 0x00004000 != 0){
 		IOHandler(PRNTINT);
 	}
-	if(interruptCause & 0x00008000 != 0){
+	if((interruptCause & 0x00008000) != 0){
 		IOHandler(TERMINT);
 	}
 
@@ -136,19 +136,20 @@ void pseudoInterrupts(){
 }
 
 void IOHandler(int num){
-	/*this function will handle any devices that are going to interrupt
+	/*this function will handle any devices that are going to interrupt using the constant DEVON to map it to a proper 
+	correcsponding device */
 
 	/*variables*/
 	debuggerA(50);
 	volatile devregarea_t *deviceReg;
 
-	/*number for interrupt*/
-	int deviceNum;
+	/*need a register to hold status for the special case*/
+	volatile devregarea_t *termReg;
 
-	/*sema4 number*/
-	int deviceSem;
+	/*sema4 number
+	int deviceSem;*/
 
-	/*keeps record of the status*/
+	/*keeps record of the device status*/
 	unsigned int intStat;
 
 	/*keeps hold of the line number*/
@@ -157,84 +158,101 @@ void IOHandler(int num){
 	/*points to pcb*/
 	pcb_t *ready;
 
-	/*do I need this*/
-	/*int interrupt_dev;*/
-
 	/*establish addressing*/
 	deviceReg = (devregarea_t *) RAMBASEADDR;  
 	bitMap = deviceReg->interrupt_dev[(intLine - DISKINT)]; 
 
+	if(&(bitMap) == NULL){
+		PANIC();
+	}
 
 	/*bitmapping*/
-	if(bitMap &DEV0ON != 0 ){
+	if((bitMap &DEV0ON)!= 0 ){
 			deviceNum = 0;
-		
-		if(bitMap &DEV1ON != 0 ){
-			deviceNum = 1;
-		}
-		if(bitMap &DEV2ON != 0 ){
-			deviceNum = 2;
-		}
-		if(bitMap &DEV3ON != 0 ){
-			deviceNum = 3;
-		}
-		if(bitMap &DEV4ON != 0 ){
-			deviceNum = 4;
-		}
-		if(bitMap &DEV5ON != 0 ){
-			deviceNum = 5;
-		}
-		if(bitMap &DEV6ON != 0 ){
-			deviceNum = 6;
-		}
-		if(bitMap &DEV7ON != 0 ){
-			deviceNum = 7;
-		}
-		
+	}
+
+	else if((bitMap &DEV1ON) != 0 ){
+		deviceNum = 1;
+	}
+
+	else if((bitMap &DEV2ON) != 0 ){
+		deviceNum = 2;
+	}
+
+	else if((bitMap &DEV3ON) != 0 ){
+		deviceNum = 3;
+	}
+
+	else if((bitMap &DEV4ON) != 0 ){
+		deviceNum = 4;
+	}
+
+	else if((bitMap &DEV5ON) != 0 ){
+		deviceNum = 5;
+	}
+
+	else if((bitMap &DEV6ON) != 0 ){
+		deviceNum = 6;
+	}
+
+	else if((bitMap &DEV7ON) != 0 ){
+		deviceNum = 7;
 	}/*finish bitmapping/
 
 	/*determine sem for device*/
-	deviceSem= ((intLine - DISKINT) * DEVPERINT) + deviceNum;
+	deviceNum += ((intLine - DISKINT) * DEVPERINT); 
 
-		/*case for terminal*/
-	if(intLine = TERMINT){
+	/*case for terminal*/
+	if(intLine == TERMINT){
 		/*need to first check to see if the terminal is transmit or recieve*/
 
+		/*set up termReg*/
+		termReg = (devregarea_t *)RAMBASEADDR;
+
 		/*get status from register*/
-		intStat = deviceReg->devreg[(deviceSem)].t_transm_status;
+		intStat = termReg->devreg[(deviceNum)].t_transm_status;
 
 		/*need to and it to the 0x0F(which is a constant called BITS)*/
 
 		/*if it equals 1 then it is receiving*/
 		if((intStat & BITS) == 1){
 			/*make a copy of the receive status*/
-			intStat = deviceReg->devreg[(deviceSem)].t_recv_status;
+			intStat = termReg->devreg[(deviceNum)].t_recv_status;
 			/*ack the recieve*/
-			deviceReg->devreg[(deviceSem)].t_recv_command = ACK;
+			termReg->devreg[(deviceNum)].t_recv_command = ACK;
 
 			/*increment the device sem4 number by DEVPERINT*/
-			(deviceSem)+= DEVPERINT;
+			(deviceNum)+= DEVPERINT;
 
 		}
 
 		/*If it's 0 then it is transmitting*/
+		else{
 
 		/*ack the transmit*/
-		deviceReg->devreg[(deviceSem)].t_transm_command = ACK;
+		termReg->devreg[(deviceNum)].t_transm_command = ACK;
 
-		/*return the status*/
-		return intStat;
+		}
 
 	}/*end of special terminal case*/
 
+	else{
+	/*copy the status*/
+	intStat = deviceReg->devreg[(deviceNum)].d_status;
+
+	/*ACK it*/
+	deviceReg->devreg[(deviceNum)].d_command = ACK;
+
+	}
 
     /*v the sem*/
-	devices[deviceSem] += 1; 
+	devices[deviceNum] += 1; 
+
 
 	/*wait for IO */
-	if(deviceSem <= 0){ 
+	if(devices[deviceNum] <= 0){ 
 
-		ready = removeBlocked(&(devices[deviceSem]));
+		ready = removeBlocked(&(devices[deviceNum]));
 
 		/*there is a process that needs to be unblocked and given status*/
 		if(ready != NULL){
@@ -259,5 +277,4 @@ void IOHandler(int num){
 			scheduler();
 		}
 	}
-}
-/*****End of IOHandler*****/
+}/*****End of IOHandler*****/
