@@ -101,7 +101,7 @@ void plt(cpu_t stopTOD){
 	}
 	
 	if(currentproc == NULL){ /* if there is no current process running call panic*/
-		
+		debuggerA(1);
 		PANIC();
 	}
 }
@@ -180,6 +180,7 @@ void IOHandler(int num){
 	bitMap = deviceReg->interrupt_dev[(intLine - DISKINT)]; 
 
 	if(&(bitMap) == NULL){
+		debuggerA(2);
 		PANIC();
 	}
 
