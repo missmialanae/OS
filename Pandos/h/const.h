@@ -103,10 +103,11 @@
 
 /*user mode*/
 #define USER 		0x00000008
+#define NOPRIV		10
 
 /*cause register*/
 #define GETCAUSE 	0x0000007C
-#define CLEAR
+#define CLEAR		0xFFFFF00
 #define BITS 		0X0F
 
 

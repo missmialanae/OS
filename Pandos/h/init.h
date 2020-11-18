@@ -12,7 +12,9 @@
 extern void uTLB_RefillHandler ();
 extern void test();
 extern void GenExceptionHander();
-extern int debuggerA();
+extern int debuggerA(int a);
+extern int debuggerB(pcb_t *t);
+
 
 /*Process Count*/
 extern int processcnt;

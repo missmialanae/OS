@@ -50,8 +50,12 @@ void sysTrapH(){
 	/*set the sys that we are getting and set it to */
 	sys = state->s_a0;
 
-	/*in user mode*/
-	if((sys >= 1) && (sys <= 8) && ((state-> s_status & USER) != 0)){
+	/*in user mode NOT KERNEL*/
+	if((sys >= 1) && (sys <= 8) && ((state-> s_status & USER) == 1)){
+
+		/*change the causes priv*/
+		(state->s_cause) = (state->s_cause & CLEAR) | (NOPRIV << SHIFTS);
+
 		/*call the program traph*/
 		pgmTrapH(); 
 	}
@@ -140,7 +144,7 @@ void createProcess(){
 	pcb_t *created = allocPcb();
 
 	/*need a support structureand set it to the currentproc's a2*/
-	support_t *support = (support_t *)currentproc->p_s.s_a2;
+	support_t *support;
 
 	if(created == NULL){
 		/*need to switch the context*/
@@ -155,6 +159,7 @@ void createProcess(){
 
 	/*p_supportStruct is set to NULL*/
 	created->p_supportStruct = NULL;
+	support = (support_t *)currentproc->p_s.s_a2;
 
 	/*need to check the support */
 
@@ -211,7 +216,7 @@ void verhogen(){
 
 	/*thing as passeren()*/
 	int *sem = currentproc->p_s.s_a1;
-	*sem +=1;
+	*sem +=1;/*update CPU*/
 
 	if (sem <= 0){
 		temp = removeBlocked(*sem);
@@ -225,6 +230,7 @@ void verhogen(){
 	}
 
 	/*now another context switch*/
+	/*debuggerB(temp->p_s.s_a1);*/
 	contextSwitch(currentproc);
 }
 
@@ -232,11 +238,8 @@ void verhogen(){
 void waitIO(){
 
 	/*variables*/
-	debuggerA(40);
 	int deviceNum;
-	debuggerA(41);
 	int interruptLine;
-	debuggerA(42);
 
 	/*match the interrupt numbers with the device*/
 
@@ -308,8 +311,6 @@ void supportPtr(){
 }
 
 HIDDEN void passUpOrDie(int except){
-
-	/*idk what is happening here*/ 
 
 	/*check to make sure the support is not null*/
 	if(currentproc->p_supportStruct != NULL){
