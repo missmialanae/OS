@@ -28,8 +28,6 @@ extern void uTLB_RefillHandler();
 extern void test();
 extern void GenExceptionHander();
 extern int debuggerA();
-extern int debuggerB(pcb_t *t);
-
 
 /*Process Count*/
 int processcnt;
@@ -52,8 +50,9 @@ cpu_t startTOD;
 /*amt till time slice*/
 cpu_t *sliceCount; /*do I need this now*/
 
-/*initialize I/O and clock semaphores*/
-cpu_t semClock;
+/*save state*/
+unsigned int saveStat[DEVICECNT + DEVPERINT];
+
 
 int main(){
 	int i; /*for device for loop*/
@@ -69,75 +68,75 @@ int main(){
 	passup->exception_stackPtr = KERNAL;
 
 /******************** INITALIZATION OF PHASE 1 *******************************/
-	
+	debuggerA(1);
 	initPcbs();
-	
+	debuggerA(2);
 	initASL();
-	
+	debuggerA(3);
 
 /******************** INITALIZATION OF NUCLEUS VARIABLES *********************/
 	/*Process Count*/
 	processcnt = 0;
-	
+	debuggerA(4);
 	/*Soft-block count*/
 	softBlock = 0;
-	
+	debuggerA(5);
 	/*ready queue*/
 	readyQueue = mkEmptyProcQ();
-	
+	debuggerA(6);
 
 	/*setting current process */
 	currentproc = NULL; 
-
+	debuggerA(7);
 
 	/*creating the semd devices*/
 
-	devices[DEVICECNT+DEVPERINT] = 0; /*use for semClock*/
-	
+	devices[DEVICECNT+DEVICECNT] = 0; /*use for semClock*/
+	debuggerA(9);
 
 	for(i = 0; i < (DEVICECNT + DEVPERINT); i++){
-	
+		debuggerA(10);
 		devices[i] = 0;
-		
+		debuggerA(11);
 	}
 
 	LDIT(PSEUDO); /*set interval time to 100 milliseconds*/
-	
+	debuggerA(12);
 
 /******************** SCHEDULER **********************************************/
 
 	/*creating the first process*/
 	current = allocPcb();
-	
+	debuggerA(13);
 	/*using C macro to set up the location of topOfRAM*/
 	RAMTOP(topOfRAM);
-	
+	debuggerA(14);
 	if(current != NULL){
 		/*start the test*/
-		
+		debuggerA(15);
 		current->p_s.s_t9 = (memaddr) test;
-		
+		debuggerA(16);
 		current->p_s.s_pc = (memaddr) test;
-	
+		debuggerA(17);
 		current->p_s.s_status = ALLOFF | IEPON | IMON | TEBITONL; /* turning bits on*/
-		
+		debuggerA(18);
 		current->p_s.s_sp = topOfRAM; /*setting the stack pointer*/
-		
+		debuggerA(19);
 		processcnt += 1; /*need to add this process to the count*/
-		
+		debuggerA(20);
 		insertProcQ(&(readyQueue), current);
-		
+		debuggerA(21);
 		scheduler();
-		
+		debuggerA(22);
 	}
 
 	else{
-		
+		debuggerA(23);
 		PANIC();
 	}
 
 	/*Mikey said so*/
-	
+	debuggerA(24);
 	return 0;
 
 }/*end of main*/
@@ -153,7 +152,6 @@ void GenExceptionHander(){
 
 	/*used to find reason for genexceptionhandler*/ 
 	int reason = (int) (((state->s_cause) & GETCAUSE) >> 2);
-	debuggerA(reason);
 
 	/*if it is one of these send it to one of these*/
 		if(reason == 0){ 
@@ -173,6 +171,7 @@ void GenExceptionHander(){
 		/*anything else*/
 		pgmTrapH();
 }
+
 /*debug functions*/
 int debuggerA(int a){
 	a = 0;

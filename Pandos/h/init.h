@@ -37,5 +37,7 @@ extern cpu_t startTOD;
 /*amt till time slice*/
 extern cpu_t *sliceCount; /*do I need this now*/
 
+extern unsigned int saveStat[ DEVICECNT + DEVPERINT];
+
 
 #endif
