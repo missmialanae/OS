@@ -68,64 +68,66 @@ int main(){
 	passup->exception_stackPtr = KERNAL;
 
 /******************** INITALIZATION OF PHASE 1 *******************************/
-
+	debuggerA(1);
 	initPcbs();
-	
+	debuggerA(2);
 	initASL();
-	
+	debuggerA(3);
+
 /******************** INITALIZATION OF NUCLEUS VARIABLES *********************/
 	/*Process Count*/
 	processcnt = 0;
-	
+	debuggerA(4);
 	/*Soft-block count*/
 	softBlock = 0;
-	
+	debuggerA(5);
 	/*ready queue*/
 	readyQueue = mkEmptyProcQ();
-	
+	debuggerA(6);
 
 	/*setting current process */
 	currentproc = NULL; 
-	
+	debuggerA(7);
 
 	/*creating the semd devices*/
 
 	devices[DEVICECNT+DEVICECNT] = 0; /*use for semClock*/
-
+	debuggerA(9);
 
 	for(i = 0; i < (DEVICECNT + DEVPERINT); i++){
 		debuggerA(10);
 		devices[i] = 0;
-	
+		debuggerA(11);
 	}
 
 	LDIT(PSEUDO); /*set interval time to 100 milliseconds*/
-	
+	debuggerA(12);
 
 /******************** SCHEDULER **********************************************/
 
 	/*creating the first process*/
 	current = allocPcb();
-	
+	debuggerA(13);
 	/*using C macro to set up the location of topOfRAM*/
 	RAMTOP(topOfRAM);
-		if(current != NULL){
+	debuggerA(14);
+	if(current != NULL){
 		/*start the test*/
-	
+		debuggerA(15);
 		current->p_s.s_t9 = (memaddr) test;
-		
+		debuggerA(16);
 		current->p_s.s_pc = (memaddr) test;
-		
+		debuggerA(17);
 		current->p_s.s_status = ALLOFF | IEPON | IMON | TEBITONL; /* turning bits on*/
-		
+		debuggerA(18);
 		current->p_s.s_sp = topOfRAM; /*setting the stack pointer*/
-		
+		debuggerA(19);
 		processcnt += 1; /*need to add this process to the count*/
-	
+		debuggerA(20);
 		insertProcQ(&(readyQueue), current);
-	
+		debuggerA(21);
 		scheduler();
-	
+		debuggerA(22);
 	}
 
 	else{
@@ -134,7 +136,7 @@ int main(){
 	}
 
 	/*Mikey said so*/
-	
+	debuggerA(24);
 	return 0;
 
 }/*end of main*/
