@@ -106,9 +106,15 @@
 #define NOPRIV		10
 
 /*cause register*/
-#define GETCAUSE 	0x0000007C
-#define CLEAR		0xFFFFF00
-#define BITS 		0X0F
+#define GETCAUSE 		0x0000007C
+#define CLEAR			0xFFFFFF00
+#define BITS 			0x0F
+#define PLTINTERRUPT	0x00000200
+#define PSEUDOINTER		0x00000400
+#define DISK 			0x00000800
+#define FLASH 			0x00001000
+#define PRINT 			0x00004000
+#define TERMINAL 		0x00008000
 
 
 /* Exceptions related constants */
@@ -122,7 +128,7 @@
 
 /*clock defines*/
 #define PSEUDO		100000 /*Pseudoclock; likely for the timer interrupt in interrupts.c*/
-#define QUANTUM 	50000
+#define QUANTUM 	5000
 #define MAXNUM 		10000
 
 /*defining the syscalls*/

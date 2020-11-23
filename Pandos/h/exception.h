@@ -17,11 +17,11 @@ extern void sysTrapH();
 extern void blockCurrent(int *blockSem);
 extern void removeProcess(pcb_t *proc);
 HIDDEN void passUpOrDie(int except);
-extern void createProcess();
+extern int createProcess();
 extern void passeren();
 extern void verhogen();
 extern void waitIO();
 extern void waitClock();
-extern void supportPtr();
+extern support_t* supportPtr();
 
 #endif

@@ -29,15 +29,11 @@ HIDDEN void IOHandler(int num);
 /*add these just in case*/
 /*int deviceNum;/*for the device number*/
 
-int interruptLine;
-
-/*bitmapping*/
-/*unsigned int bitMap; */
-
 void trapH(){
 
 	cpu_t stopTOD;
 	cpu_t interruptCause; /*cause_t?*/
+	int interruptLine;
 	STCK(stopTOD);
 	sliceCount = getTIMER();
 
@@ -69,9 +65,7 @@ void trapH(){
 		currentproc->p_time += (stopTOD - startTOD);
 
 		moveState((state_t *) BIOSDATAPAGE, &(currentproc-> p_s));
-		intervalSwitch(sliceCount);
-
-		contextSwitch(currentproc);
+		intervalSwitch(sliceCount, currentproc);
 
 	}
 	else{
@@ -84,26 +78,27 @@ void trapH(){
 void plt(cpu_t stopTOD){
 	/*Handles the procedures to handle CPU when it generates a clock interrupt.*/
 	/*Deals with Quantum. */
-	if(currentproc != NULL){
+	int interruptLine;
 
-		currentproc -> p_time = stopTOD - startTOD; /*change the time to the current process*/
-
-		moveState((state_t *) BIOSDATAPAGE, &(currentproc->p_s)); /*store the processor state using move state*/
-
-		/*do we actually need to invoke the scheduler. Mikey says that and sometimes he be lyin*/
-
-		insertProcQ(&(readyQueue), currentproc); /* call insertProc*/
-
-		currentproc = NULL;
-
-		scheduler(); /*call switch */
-
-	}
-	
 	if(currentproc == NULL){ /* if there is no current process running call panic*/
 		
 		PANIC();
 	}
+	
+	currentproc -> p_time += stopTOD - startTOD; /*change the time to the current process*/
+
+	moveState((state_t *) BIOSDATAPAGE, &(currentproc->p_s)); /*store the processor state using move state*/
+
+	/*do we actually need to invoke the scheduler. Mikey says that and sometimes he be lyin*/
+
+	insertProcQ(&(readyQueue), currentproc); /* call insertProc*/
+
+	currentproc = NULL;
+
+	debuggerA(1);
+	scheduler(); /*call switch */
+
+	
 }
 
 void pseudoInterrupts(){
@@ -112,12 +107,14 @@ void pseudoInterrupts(){
 
 	/*variables*/
 	pcb_t *remove;
+	int interruptLine;
 
 	/* ACK interrupt using LDIT; this is the pseudoclock tick */
 
 	LDIT(PSEUDO);
 
 	/*need to unblock all pcbs*/
+	remove = removeBlocked(&(devices[DEVPERINT + DEVICECNT]));
 
 	/*begin to remove it*/
 	while(remove != NULL){ /* while loop for when p isnt null*/
@@ -129,7 +126,7 @@ void pseudoInterrupts(){
 		softBlock -= 1;
 
 		/*remove it*/
-		removeBlocked(remove->p_semAdd);
+		remove = removeBlocked(&(devices[DEVPERINT + DEVICECNT]));
 
 	}
 
@@ -140,31 +137,25 @@ void pseudoInterrupts(){
 	if(currentproc == NULL){
 
 		/*no current proc you have to wait */
+		debuggerA(5);
 		scheduler();
 	}
-
-	/*Yes current proc then return control to the currentproc*/
-	contextSwitch(currentproc); 
 }
 
 void IOHandler(int num){
-
-	unsigned int bitMap;
-
-	int deviceNum;
-
 	/*this function will handle any devices that are going to interrupt using the constant DEVON to map it to a proper 
 	correcsponding device */
 
 	/*variables*/
-	debuggerA(50);
+	int interruptLine;
+	unsigned int bitMap;
+
+	int deviceNum;
+	
 	volatile devregarea_t *deviceReg;
 
 	/*need a register to hold status for the special case*/
 	volatile devregarea_t *termReg;
-
-	/*sema4 number
-	int deviceSem;*/
 
 	/*keeps record of the device status*/
 	unsigned int intStat;
@@ -174,6 +165,7 @@ void IOHandler(int num){
 
 	/*points to pcb*/
 	pcb_t *ready;
+
 
 	/*establish addressing*/
 	deviceReg = (devregarea_t *) RAMBASEADDR;  
@@ -232,7 +224,7 @@ void IOHandler(int num){
 		/*need to and it to the 0x0F(which is a constant called BITS)*/
 
 		/*if it equals 1 then it is receiving*/
-		if((intStat & BITS) == 1){
+		if((intStat & BITS) == 1)	{
 			/*make a copy of the receive status*/
 			intStat = termReg->devreg[(deviceNum)].t_recv_status;
 			/*ack the recieve*/
@@ -291,7 +283,7 @@ void IOHandler(int num){
 
 		/*new proc*/
 		if(currentproc == NULL){ 
-
+			debuggerA(2);
 			scheduler();
 		}
 

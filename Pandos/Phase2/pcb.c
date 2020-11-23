@@ -1,3 +1,4 @@
+
 /*Including the .h files*/
 
 #include "../h/const.h"
@@ -59,7 +60,6 @@ pcb_t* allocPcb (){
 	if (pcbfree_h == (NULL)){
 		return NULL;
 	} /*set the pcb and give it's information
-
 	/make sure it's not being used*/
 
 	pcb_t *p = removeProcQ(&pcbfree_h); /* that pcb is empty*/ 

@@ -48,7 +48,7 @@ int devices[DEVICECNT + DEVPERINT + 1];
 cpu_t startTOD;
 
 /*amt till time slice*/
-cpu_t *sliceCount; /*do I need this now*/
+cpu_t sliceCount; /*do I need this now*/
 
 /*save state*/
 unsigned int saveStat[DEVICECNT + DEVPERINT];
@@ -56,7 +56,7 @@ unsigned int saveStat[DEVICECNT + DEVPERINT];
 
 int main(){
 	int i; /*for device for loop*/
-	pcb_t *current; /*name of first process*/
+	pcb_t *now; /*name of first process*/
 	memaddr topOfRAM; /*used for RAMTOP*/
 	passupvector_t *passup; /*passup vector*/
 
@@ -68,66 +68,66 @@ int main(){
 	passup->exception_stackPtr = KERNAL;
 
 /******************** INITALIZATION OF PHASE 1 *******************************/
-	debuggerA(1);
+	
 	initPcbs();
-	debuggerA(2);
+	
 	initASL();
-	debuggerA(3);
+	
 
 /******************** INITALIZATION OF NUCLEUS VARIABLES *********************/
 	/*Process Count*/
 	processcnt = 0;
-	debuggerA(4);
+	
 	/*Soft-block count*/
 	softBlock = 0;
-	debuggerA(5);
+	
 	/*ready queue*/
 	readyQueue = mkEmptyProcQ();
-	debuggerA(6);
+	
 
 	/*setting current process */
 	currentproc = NULL; 
-	debuggerA(7);
+
 
 	/*creating the semd devices*/
 
 	devices[DEVICECNT+DEVICECNT] = 0; /*use for semClock*/
-	debuggerA(9);
+	
 
 	for(i = 0; i < (DEVICECNT + DEVPERINT); i++){
-		debuggerA(10);
+		
 		devices[i] = 0;
-		debuggerA(11);
+		
 	}
 
 	LDIT(PSEUDO); /*set interval time to 100 milliseconds*/
-	debuggerA(12);
+	
 
 /******************** SCHEDULER **********************************************/
 
 	/*creating the first process*/
-	current = allocPcb();
-	debuggerA(13);
+	now = allocPcb();
+	
 	/*using C macro to set up the location of topOfRAM*/
 	RAMTOP(topOfRAM);
-	debuggerA(14);
-	if(current != NULL){
+
+	if(now != NULL){
 		/*start the test*/
-		debuggerA(15);
-		current->p_s.s_t9 = (memaddr) test;
-		debuggerA(16);
-		current->p_s.s_pc = (memaddr) test;
-		debuggerA(17);
-		current->p_s.s_status = ALLOFF | IEPON | IMON | TEBITONL; /* turning bits on*/
-		debuggerA(18);
-		current->p_s.s_sp = topOfRAM; /*setting the stack pointer*/
-		debuggerA(19);
+		
+		now->p_s.s_t9 = (memaddr) test;
+		
+		now->p_s.s_pc = (memaddr) test;
+		
+		now->p_s.s_status = ALLOFF | IEPON | IMON | TEBITONL; /* turning bits on*/
+		
+		now->p_s.s_sp = topOfRAM; /*setting the stack pointer*/
+		
 		processcnt += 1; /*need to add this process to the count*/
-		debuggerA(20);
-		insertProcQ(&(readyQueue), current);
-		debuggerA(21);
+		
+		insertProcQ(&(readyQueue), now);
+	
 		scheduler();
-		debuggerA(22);
+		
 	}
 
 	else{
@@ -136,7 +136,6 @@ int main(){
 	}
 
 	/*Mikey said so*/
-	debuggerA(24);
 	return 0;
 
 }/*end of main*/

@@ -23,20 +23,22 @@ extern void sysTrapH();
 extern void blockCurrent(int *blockSem);
 extern void removeProcess(pcb_t *proc);
 HIDDEN void passUpOrDie(int except);
-extern void createProcess();
+extern int createProcess();
 extern void passeren();
 extern void verhogen();
 extern void waitIO();
 extern void waitClock();
-extern void supportPtr();
+extern support_t* supportPtr();
 
 
 void pgmTrapH(){
+	/*When the program triggers a program trap then it is sent to passupordie*/
 	
 	passUpOrDie(GENERALEXCEPT);
 }
 
 void tlbTrapH(){
+	/*when the program triggers a TLB mgmt trap then it is sent to passupordie*/
 	
 	passUpOrDie(PGFAULTEXCEPT);
 }
@@ -65,14 +67,17 @@ void sysTrapH(){
 
 	/*need to prevent the loop*/
 
-	currentproc->p_s.s_pc += 4;
+	currentproc->p_s.s_pc = currentproc->p_s.s_pc + 4;
 
 	/*call switch to change the state depending on the value*/
 	switch(sys){
 
 		/*create a process -- sys 1*/
 		case CREATEPROCESS: {
-			createProcess();
+			int created;
+			created = createProcess();
+			currentproc->p_s.s_v0 = created; 
+			contextSwitch(currentproc);
 		}
 
 		/*terminate the process -- sys 2*/
@@ -81,6 +86,7 @@ void sysTrapH(){
 			removeProcess(currentproc);
 
 			/*call the scheduler*/
+			debuggerA(4);
 			scheduler();
 		}
 
@@ -111,7 +117,6 @@ void sysTrapH(){
 			currentproc->p_s.s_v0 = resulTime;
 
 			/*need to return control at the end */
-
 			contextSwitch(currentproc);
 		}
 
@@ -122,10 +127,9 @@ void sysTrapH(){
 
 		/*get support PTR -- sys 8*/
 		case GETSUPPORTPTR:{
-
-			/*idk what happens here tbh*/
-
-			supportPtr();
+			support_t *supp = supportPtr();
+			currentproc->p_s.s_v0 = supp;
+			contextSwitch(currentproc);
 		}
 
 		default :{
@@ -136,33 +140,33 @@ void sysTrapH(){
 }
 
 /******************** SYS 1 *****************************************************/
-void createProcess(){
+int createProcess(){
 
 	/*sys 1*/
 
 	/*allocate a new pcb*/
-	pcb_t *created = allocPcb();
+	pcb_t *created;
+	state_t *data;
+	support_t *support;
 
-	/*need a support structureand set it to the currentproc's a2*/
-	support_t *support = (support_t *)currentproc->p_s.s_a2;
+
+	created = allocPcb();
 
 	if(created == NULL){
-		/*need to switch the context*/
-
+		/*change v0 to -1 */
 		currentproc->p_s.s_v0 = -1;
-		contextSwitch(currentproc);
+
+		return (1);
+		
 	}
 	/*if the p is not null*/
-
 
 	/*increase the processcnt*/
 	processcnt += 1;
 
-	/*p_s from a1 */
-	moveState((state_t *)currentproc->p_s.s_a1, &(created->p_s));
-
-	/*p_supportStruct is set to NULL*/
-	created->p_supportStruct = NULL;
+	data = (state_t *) currentproc->p_s.s_a1;
+	moveState(data, &(created->p_s));
+	support = (support_t *)currentproc->p_s.s_a2;
 
 	/*need to check the support */
 
@@ -170,18 +174,11 @@ void createProcess(){
 		created->p_supportStruct = support; /*setting created's support structure to be support*/
 	}
 	
-		insertProcQ(&(readyQueue), created);
-		insertChild((currentproc), created);
-		currentproc->p_s.s_v0 = 1;
+	insertProcQ(&(readyQueue), created);
+	insertChild((currentproc), created);
+	currentproc->p_s.s_v0 = 0; /*put 0 into v0*/
 
-	/*time*/
-	created->p_time = 0; 
-
-	/*p_semADD is set to NULL*/
-	created -> p_semAdd == NULL; 
-
-	/*need to switch Context*/
-	contextSwitch(currentproc);
+	return (0);
 
 }
 
@@ -192,15 +189,14 @@ void passeren(){
 	sema4 to be P'ed in a1, and then executing the SYSCALL instructions */
 
 	/*pointer to a sem4 value* and set it to the currentproc's a1 */
-	int *sem = currentproc->p_s.s_a1;
+	int *sem;
+	sem =(int *)currentproc->p_s.s_a1;
 	*sem -=1;
 
 	/*need to block and invoke scheduler*/
 	if(*sem < 0){
 
 		blockCurrent(&(sem));
-
-		scheduler();
 	}
 	/*now another context switch*/
 	contextSwitch(currentproc);
@@ -214,9 +210,10 @@ void verhogen(){
 
 	/*need a pcb pointer*/
 	pcb_t *temp; 
+	int *sem;
 
 	/*thing as passeren()*/
-	int *sem = currentproc->p_s.s_a1;
+	sem = (int *) currentproc->p_s.s_a1;
 	*sem +=1;
 
 	if (*sem <= 0){
@@ -238,12 +235,11 @@ void verhogen(){
 void waitIO(){
 
 	/*variables*/
-	debuggerA(40);
-	int deviceNum;
-	debuggerA(41);
-	int interruptLine;
-	debuggerA(42);
 
+	int deviceNum;
+	
+	int interruptLine;
+	
 	/*match the interrupt numbers with the device*/
 
 	/*need to set interrupts to a1*/
@@ -258,11 +254,11 @@ void waitIO(){
 	/*terminal reading*/
 
 	if((interruptLine = TERMINT) && (currentproc->p_s.s_a3 == TRUE)){
-		deviceNum = deviceNum + DEVPERINT;
+		deviceNum += DEVPERINT;
 	}
 
 	/*taking one off the device list */
-	devices[deviceNum]-=1;
+	devices[deviceNum] -= 1;
 
 	/*now if it doesn't occur*/
 
@@ -274,7 +270,6 @@ void waitIO(){
 	}else{
 		currentproc->p_s.s_v0 = saveStat[deviceNum];
 
-		/*another switch*/
 		contextSwitch(currentproc);
 	}
 
@@ -283,12 +278,16 @@ void waitIO(){
 /******************** SYS 7 *****************************************/
 void waitClock(){
 
+	/*processes ClockWait syscall*/
+
 	devices[DEVPERINT + DEVICECNT] -= 1;
 	/*take one off of the clock sem4*/
 
 	/*need to block current process*/
 	if(devices[DEVPERINT + DEVICECNT] < 0){
 		/*now block it*/
+
+		softBlock += 1; 
 		blockCurrent(&(devices[DEVPERINT + DEVICECNT]));
 	}
 
@@ -298,7 +297,7 @@ void waitClock(){
 }
 
 /******************** SYS 8 *****************************************/
-void supportPtr(){
+support_t* supportPtr(){
 
 	/*variables*/
 	support_t *support;
@@ -306,11 +305,11 @@ void supportPtr(){
 	/*setting support*/
 	support = currentproc->p_supportStruct;
 
-	/*setting currentproc's v0 to be support*/
-	currentproc->p_s.s_v0 = support;
+	if(support != NULL){
+		return (support);
+	}
 
-	/*now switch the context*/
-	contextSwitch(currentproc);
+	return 0; 
 }
 
 HIDDEN void passUpOrDie(int except){
@@ -332,13 +331,7 @@ HIDDEN void passUpOrDie(int except){
 	/*get rid of the currentproc*/
 	removeProcess(currentproc);
 
-	/*need to switch the process*/
-	
-	/*first need to give it time*/
-	intervalSwitch(QUANTUM);
-	/*call switchContext and switch it to the currentproc*/
-	contextSwitch(currentproc);
-
+	scheduler();
 }
 
 void blockCurrent(int *blockSem){
@@ -347,6 +340,8 @@ void blockCurrent(int *blockSem){
 
 	/*variables*/
 	cpu_t stopTOD; 
+
+	/*read clock*/
 	STCK(stopTOD);
 
 	/*set the currentproc's time to the new stopTOD */
@@ -357,6 +352,7 @@ void blockCurrent(int *blockSem){
 	currentproc = NULL;
 
 	/*go to the next process*/
+	debuggerA(3);
 	scheduler();
 }
 
@@ -368,7 +364,7 @@ void removeProcess(pcb_t *proc){
 	/* recursively removes the process down
 
 	/*variables*/
-	/*pcb_t *temp;*/
+	pcb_t *temp;
 	int *sem; /*ptr to a semadd value*/
 
 	/*first you need to make sure it doesn't have a child*/
@@ -387,6 +383,17 @@ void removeProcess(pcb_t *proc){
 		outProcQ(&(readyQueue), proc);
 	}
 
+	temp = outBlocked(proc);
+
+	if(temp != NULL){
+		sem = temp->p_semAdd;
+
+		if(sem >= &devices[0] && sem <= &devices[DEVICECNT + DEVPERINT]){
+			softBlock -=1;
+		}
+
+		sem += 1;
+	}
 
 	/*set the pcb free*/
 	freePcb(proc);

@@ -26,7 +26,7 @@
 extern void moveState(state_PTR source, state_PTR final);
 extern void contextSwitch(pcb_t *currentproc);
 extern void scheduler();
-extern void intervalSwitch(cpu_t time);
+extern void intervalSwitch(cpu_t time, pcb_t* proc);
 
 
 
@@ -50,14 +50,12 @@ void contextSwitch(pcb_t *current){
 	/*switches to the process that needed to be in control. Basically it is our loadstate caller.*/
 
 	/*need to make sure the current proc is set*/
-	debuggerA(30);
+	
 	currentproc = current;
-	debuggerA(31);
 
 	/*call loadstate*/
 	LDST(&(current->p_s));
-	debuggerA(32);
-
+	
 }
 
 void scheduler(){
@@ -65,73 +63,57 @@ void scheduler(){
 	/*the processes for us. So when it is time to switch the process then call scheduler*/
 
 	/*local variables*/
-	debuggerA(70);
-	int currentStatus;
-	debuggerA(71);
+	unsigned int currentStatus;
 	pcb_t *next;
-	debuggerA(72);
-
 
 	/********* if the ready queue is empty ************/
 
 	/*make sure the ready queue is not empty*/
-	if(!emptyProcQ(readyQueue)){
-		debuggerA(73);
-		/*if the readyQueue is not empty*/
+	if(readyQueue != NULL){
+
 		/*if I found one I need to remove it from the ready queue*/
-		pcb_t *next = removeProcQ(&readyQueue);
-		debuggerA(74);
+		next = removeProcQ(&readyQueue);
 
-		/*start the clocks*/
-		intervalSwitch(QUANTUM);
-		debuggerA(75);
-
-		/*context switch*/
-		contextSwitch(next);
-		debuggerA(76);
-
+		intervalSwitch(QUANTUM, next);
 	}
 
-	if(emptyProcQ(readyQueue)){
-		debuggerA(77);
-		/*if the readyQueue is empty*/
+	/*if there are no more processes then die*/
+	if(processcnt == 0){
+		
+		/*invoke the HALT BIOS and now you are done*/
+		HALT();
+		
+	}
 
-		/*if there are no more processes then die*/
-		if(processcnt == 0){
-			debuggerA(78);
-			/*invoke the HALT BIOS and now you are done*/
-			HALT();
-			debuggerA(79);
-		}
+	if(processcnt > 0 && softBlock > 0){
+		
+		/*if we have something but it is busy*/
 
-		if(processcnt > 0 && softBlock > 0){
-			debuggerA(80);
-			/*if we have something but it is busy*/
+		currentproc = NULL;
+		/*set the local timer to be a big number*/
+		
+		setTIMER(MAXINT); /*do we already know this or do we need to define it?*/
 
-			currentproc = NULL;
-			/*set the local timer to be a big number*/
-			debuggerA(81);
-			setTIMER(MAXINT); /*do we already know this or do we need to define it?*/
+		/*need to fix the status now*/
+		currentStatus = ALLOFF | IECON | IMON | TEBITONL;
+		
+		setSTATUS(currentStatus);
 
-			/*need to fix the status now*/
-			currentStatus = ALLOFF | IECON | IMON | TEBITONL;
-			debuggerA(82);
-			setSTATUS(currentStatus);
-			debuggerA(83); 
+		/*enter a wait state*/
+		WAIT();
+	}
 
-			/*enter a wait state*/
-			WAIT();
-		}
-
+	if(processcnt > 0 && softBlock == 0){
 		/*anything else just panic*/
 		debuggerA(84);
 		PANIC();
 	}
-	debuggerA(88);
+
+
 	return; 
 }
 
-void intervalSwitch(cpu_t time){
+void intervalSwitch(cpu_t time, pcb_t* proc){
 	/*basically this should prepare the interval timer for given pcb. You should be able*/
 	/*to call this when you need to load a new process, and for clock and i/o interrupts*/
 
@@ -141,7 +123,8 @@ void intervalSwitch(cpu_t time){
 	/*set the timer to the time given*/
 	setTIMER(time);
 
-	/*do I always need to context switch here?*/
+	contextSwitch(proc);
+
 }
 
 /******************* END ******************************************************/
