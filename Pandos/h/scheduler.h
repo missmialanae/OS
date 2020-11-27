@@ -1,17 +1,16 @@
-#ifndef SCHEDULER
-#define SCHEDULER
-/************************* Scheduler.H *****************************
-*
-*  The externals declaration file for the scheduler
-*  
-*
-* 
-*/
+#ifndef scheduler
+#define scheduler
+
+/******************Scheduler.h******************************
+
+the external declaration file for the scheduler*/
+
+
+
 #include "../h/types.h"
 
-extern void moveState(state_PTR source, state_PTR final);
-extern void contextSwitch(pcb_t *currentproc);
-extern void scheduler();
-extern void intervalSwitch(cpu_t time, pcb_t* proc);
+extern void scheduleProcess();
+extern void contextSwitch(pcb_t *process);
+extern void intervalSwitch(cpu_t specificTime);
 
 #endif

@@ -1,27 +1,20 @@
-#ifndef EXCEPTION
-#define EXCEPTION
-/************************* Exception.H *****************************
+#ifndef exceptions 
+#define exceptions
+
+/********************Exceptions.h************************************
 *
-*  The externals declaration file for the exception
-*  
+* external declarations for exception
 *
-* 
+*
 */
+
+
 #include "../h/types.h"
-
-
 
 extern void pgmTrapH();
 extern void tlbTrapH();
+extern void passUpOrDie(int exceptNum);
 extern void sysTrapH();
-extern void blockCurrent(int *blockSem);
-extern void removeProcess(pcb_t *proc);
-HIDDEN void passUpOrDie(int except);
-extern int createProcess();
-extern void passeren();
-extern void verhogen();
-extern void waitIO();
-extern void waitClock();
-extern support_t* supportPtr();
+extern void moveState(state_t *source, state_t *copy);
 
 #endif

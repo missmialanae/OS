@@ -6,16 +6,62 @@
  * This header file contains utility constants & macro definitions.
  * 
  ****************************************************************************/
+/*Status Register bit constants*/
+#define ALLOFF            0x00000000
+#define IEPREVON          0x00000004 /*previous interrupt bit on*/
+#define IMASKON           0x0000FF00 /*interrupt masking turned on*/
+#define TIMEREBITON       0x08000000 /*timer enable bit on*/
+#define IECURRENTON       0x00000001 /*current interrupt bit on*/
+#define USERPREVON        0x00000008 /*user bit previous is on*/
+
+/*Cause Register bit constants*/
+#define GETCAUSE          0x0000007C /*keep on cause bits*/
+#define CLEARCAUSE        0xFFFFF00 /*clear the cause bits*/
+#define SHIFTCAUSE        2
+#define NOTPRIVINSTRUCT   10
+#define PLTINTERRUPT      0x00000200
+#define PSEUDOCLOCKINT    0x00000400
+#define DISKINTERRUPT     0x00000800
+#define FLASHINTERRUPT    0x00001000
+#define PRINTINTERRUPT    0x00004000
+#define TERMINALINTERRUPT 0x00008000
+#define TRANSMITBITS      0x0F
+
+/*Device Constants*/
+#define DEVICE0           0x00000001
+#define DEVICE1           0x00000002
+#define DEVICE2           0x00000004
+#define DEVICE3           0x00000008
+#define DEVICE4           0x00000010
+#define DEVICE5           0x00000020
+#define DEVICE6           0x00000040
+#define DEVICE7           0x00000080
+
+/*Exception Constants*/
+#define MAKEPROCESS       1
+#define KILLPROCESS       2
+#define PASSERN           3
+#define VERHOGEN          4
+#define WAITIO            5
+#define GETCLOCK          6  
+#define CLOCKSEMA4        7
+#define SUPPORTDATA       8
+#define TERMINATE         9
+#define GETTOD            10
+#define WRITETOPRINTER    11
+#define WRITETOTERMINAL   12
+#define READFROMTERMINAL  13
 
 /* Hardware & software constants */
 #define PAGESIZE		  4096			/* page size in bytes	*/
 #define WORDLEN			  4				  /* word size in bytes	*/
-#define MAXPROC			 20
-#define pcb_PTR			pcb_t*
-#define semd_PTR		semd_t*
-#define MAXINT          0xFFFFFFFF
-
-
+#define pcb_PTR           pcb_t*
+#define MAXPROC           20
+#define semd_PTR          semd_t*
+#define MAXINT            0xFFFFFFFF
+#define STKPTR            0x20001000
+#define POOLSIZE          32
+#define MAXPAGE           32
 
 /* timer, timescale, TOD-LO and other bus regs */
 #define RAMBASEADDR		0x10000000
@@ -23,7 +69,8 @@
 #define TODLOADDR		  0x1000001C
 #define INTERVALTMR		0x10000020	
 #define TIMESCALEADDR	0x10000024
-
+#define STANQUANTUM     5000
+#define STANPSEUDOCLOCK 100000
 
 /* utility constants */
 #define	TRUE			    1
@@ -39,12 +86,12 @@
 #define NETWINT 		  5
 #define PRNTINT 		  6
 #define TERMINT			  7
-
 #define DEVINTNUM		  5		  /* interrupt lines used by devices */
 #define DEVPERINT		  8		  /* devices per interrupt line */
 #define DEVREGLEN		  4		  /* device register field length in bytes, and regs per dev */	
 #define DEVREGSIZE	      16 	  /* device register size in bytes */
-#define DEVICECNT 		  (DEVINTNUM * DEVPERINT)
+#define DEVCNT   (DEVINTNUM * DEVPERINT) /*total number of devices */
+
 /* device register field number for non-terminal devices */
 #define STATUS			  0
 #define COMMAND			  1
@@ -57,23 +104,18 @@
 #define TRANSTATUS  	2
 #define TRANCOMMAND 	3
 
-#define DEV0ON          0x00000001
-#define DEV1ON          0x00000002
-#define DEV2ON          0x00000004
-#define DEV3ON          0x00000008
-#define DEV4ON          0x00000010
-#define DEV5ON          0x00000020
-#define DEV6ON          0x00000040
-#define DEV7ON          0x00000080
-
 /* device common STATUS codes */
 #define UNINSTALLED		0
-#define READY			1
-#define BUSY			3
+#define READY			    1
+#define BUSY			    3
 
 /* device common COMMAND codes */
 #define RESET			    0
 #define ACK				    1
+#define ON                  1
+#define OFF                 0
+#define FAILED              -1
+#define OK                  0
 
 /* Memory related constants */
 #define KSEG0           0x00000000
@@ -82,65 +124,15 @@
 #define KUSEG           0x80000000
 #define RAMSTART        0x20000000
 #define BIOSDATAPAGE    0x0FFFF000
-#define	PASSUPVECTOR	0x0FFFF900
-
-/*these need to be set with values but I am confused on the proper value*/
-#define KERNAL			0x20001000
-#define GENEXE		 	0x00000080
-#define REFILL 			0x00000000
-
-/*Status*/
-#define ALLOFF			0x00000000
-#define ON 				1
-#define OFF 			0
-
-/*idk what to set these to */
-#define IEPON			0x00000004
-#define IECON			0X08000001
-#define IMON			0x0000FF00
-#define TEBITONL		0X08000000
-#define SHIFTS     		2
-
-/*user mode*/
-#define USER 		0x00000008
-#define NOPRIV		10
-
-/*cause register*/
-#define GETCAUSE 		0x0000007C
-#define CLEAR			0xFFFFFF00
-#define BITS 			0x0F
-#define PLTINTERRUPT	0x00000200
-#define PSEUDOINTER		0x00000400
-#define DISK 			0x00000800
-#define FLASH 			0x00001000
-#define PRINT 			0x00004000
-#define TERMINAL 		0x00008000
-
+#define	PASSUPVECTOR	  0x0FFFF900
 
 /* Exceptions related constants */
-#define	PGFAULTEXCEPT	  	0
-#define GENERALEXCEPT	  	1
-/*keeping these just in case*/
-#define MAXPAGE 			3
-#define MINPAGE				0
-#define IO 					0
-#define SYS 				8
-
-/*clock defines*/
-#define PSEUDO		100000 /*Pseudoclock; likely for the timer interrupt in interrupts.c*/
-#define QUANTUM 	5000
-#define MAXNUM 		10000
-
-/*defining the syscalls*/
-#define CREATEPROCESS 		1
-#define TERMINATEPROCESS 	2
-#define PASSEREN 			3
-#define VERHOGEN 			4
-#define WAITIO				5
-#define GETTIME				6
-#define CLOCKWAIT 			7
-#define GETSUPPORTPTR		8
-
+#define	PGFAULTEXCEPT	  0
+#define GENERALEXCEPT	  1
+#define GOTOSYSCALL       8
+#define GOTOINTERRUPTS    0
+#define PGFAULTCAUSEMAX   3
+#define PGFAULTCAUSEMIN   0
 
 /* operations */
 #define	MIN(A,B)		((A) < (B) ? A : B)
@@ -153,7 +145,10 @@
 /* Macro to read the TOD clock */
 #define STCK(T) ((T) = ((* ((cpu_t *) TODLOADDR)) / (* ((cpu_t *) TIMESCALEADDR))))
 
-/*Macro for RAMTOP*/
-#define RAMTOP(T)((T) = ((*((int *)RAMBASEADDR))+(*((int *)RAMBASESIZE))))
+/**
+ * This macro assumes that both RAMBASEADDR and RAMBASESIZE are
+ * both defined with the appropriate addresses (from the beginning of the Bus Register area.
+ * */
+#define RAMTOP(T) ((T) = ((* ((int *) RAMBASEADDR)) + (* ((int *) RAMBASESIZE))))
 
 #endif

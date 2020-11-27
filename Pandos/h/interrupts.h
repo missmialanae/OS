@@ -1,21 +1,18 @@
-#ifndef INTERRUPTS
-#define INTERRUPTS
+#ifndef interrupts
+#define interrupts
 
-/************************* Interrupts.H *****************************
+/************************Interrupts.h*************************
 *
-*  The externals declaration file for the interrupts file
-*    Module.
+* the external declaration file for interrupts file
 *
-*  
+*
+*
 */
+
+
 
 #include "../h/types.h"
 
-/*externs*/
-
 extern void trapH();
-
-
-
 
 #endif
