@@ -122,7 +122,7 @@ void pseudoInterrupts()
     pcb_t *removedPcbs;
 
 
-    LDIT(STANPSEUDOCLOCK);/*reset psuedoclock*/
+    LDIT(PSEUDO);/*reset psuedoclock*/
 
     removedPcbs = removeBlocked(&(deviceSema4[DEVPERINT + DEVCNT]));
 
@@ -239,7 +239,7 @@ void deviceIOHandler(int lineNum)
         /*get status from registers*/
         devStatus = devRegisters->devreg[(deviceNumber)].t_transm_status;
 
-        if ((devStatus & TRANSMITBITS) != TRUE){
+        if ((devStatus & BITS) != TRUE){
 
             /*ack the recieve*/
             devRegisters->devreg[(deviceNumber)].t_transm_command = ACK;

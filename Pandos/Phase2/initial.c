@@ -62,9 +62,9 @@ int main()
     passUpVec = (passupvector_t *)PASSUPVECTOR; /*pointer that points to the PASSUPVECTOR*/
 
     passUpVec->tlb_refll_handler = (memaddr)uTLB_RefillHandler; /*setting refill handler*/
-    passUpVec->tlb_refll_stackPtr = STKPTR;
+    passUpVec->tlb_refll_stackPtr = KERNAL;
     passUpVec->exception_handler = (memaddr)GenExceptionHandler; /*setting exception handler*/
-    passUpVec->exception_stackPtr = STKPTR;
+    passUpVec->exception_stackPtr = KERNAL;
 
    /*setting clock sema4 to 0*/
     deviceSema4[DEVCNT + DEVPERINT] = 0;
@@ -75,7 +75,7 @@ int main()
         deviceSema4[counter] = 0;
     }
 
-    LDIT(STANPSEUDOCLOCK); /*set interval time to 100 milliseconds*/
+    LDIT(PSEUDO); /*set interval time to 100 milliseconds*/
 
     /*using C macro to set up the location of topRamAdd*/
     RAMTOP(topRamAdd);
@@ -120,7 +120,7 @@ void GenExceptionHandler()
 
     programState = (state_t *)BIOSDATAPAGE; /*check state in BIOSDATAPAGE*/
 
-    causeNum = (int)((programState->s_cause & GETCAUSE) >> 2); /*get cause number*/
+    causeNum = (int)((programState->s_cause & CAUSE) >> SHIFT); /*get cause number*/
     
     if (causeNum == GOTOSYSCALL)
     { 

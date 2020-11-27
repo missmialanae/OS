@@ -12,20 +12,20 @@
 #define IMASKON           0x0000FF00 /*interrupt masking turned on*/
 #define TIMEREBITON       0x08000000 /*timer enable bit on*/
 #define IECURRENTON       0x00000001 /*current interrupt bit on*/
-#define USERPREVON        0x00000008 /*user bit previous is on*/
+#define USER        	  0x00000008 /*user bit previous is on*/
 
 /*Cause Register bit constants*/
-#define GETCAUSE          0x0000007C /*keep on cause bits*/
-#define CLEARCAUSE        0xFFFFF00 /*clear the cause bits*/
-#define SHIFTCAUSE        2
-#define NOTPRIVINSTRUCT   10
+#define CAUSE          	  0x0000007C /*keep on cause bits*/
+#define CLEAR             0xFFFFF00 /*clear the cause bits*/
+#define SHIFT	          2
+#define NOTPRIV 		  10
 #define PLTINTERRUPT      0x00000200
 #define PSEUDOCLOCKINT    0x00000400
 #define DISKINTERRUPT     0x00000800
 #define FLASHINTERRUPT    0x00001000
 #define PRINTINTERRUPT    0x00004000
 #define TERMINALINTERRUPT 0x00008000
-#define TRANSMITBITS      0x0F
+#define BITS      		  0x0F
 
 /*Device Constants*/
 #define DEVICE0           0x00000001
@@ -38,19 +38,15 @@
 #define DEVICE7           0x00000080
 
 /*Exception Constants*/
-#define MAKEPROCESS       1
-#define KILLPROCESS       2
+#define CREATEPROCESS     1
+#define TERMINATEPROCESS  2
 #define PASSERN           3
 #define VERHOGEN          4
 #define WAITIO            5
 #define GETCLOCK          6  
-#define CLOCKSEMA4        7
-#define SUPPORTDATA       8
-#define TERMINATE         9
-#define GETTOD            10
-#define WRITETOPRINTER    11
-#define WRITETOTERMINAL   12
-#define READFROMTERMINAL  13
+#define CLOCK       	  7
+#define SUPPORTPTR        8
+
 
 /* Hardware & software constants */
 #define PAGESIZE		  4096			/* page size in bytes	*/
@@ -59,18 +55,16 @@
 #define MAXPROC           20
 #define semd_PTR          semd_t*
 #define MAXINT            0xFFFFFFFF
-#define STKPTR            0x20001000
-#define POOLSIZE          32
-#define MAXPAGE           32
+#define KERNAL            0x20001000
 
 /* timer, timescale, TOD-LO and other bus regs */
 #define RAMBASEADDR		0x10000000
 #define RAMBASESIZE		0x10000004
-#define TODLOADDR		  0x1000001C
+#define TODLOADDR		0x1000001C
 #define INTERVALTMR		0x10000020	
 #define TIMESCALEADDR	0x10000024
-#define STANQUANTUM     5000
-#define STANPSEUDOCLOCK 100000
+#define QUANTUM     	5000
+#define PSEUDO 			100000
 
 /* utility constants */
 #define	TRUE			    1
@@ -115,7 +109,7 @@
 #define ON                  1
 #define OFF                 0
 #define FAILED              -1
-#define OK                  0
+#define OKAY                0
 
 /* Memory related constants */
 #define KSEG0           0x00000000
@@ -145,10 +139,6 @@
 /* Macro to read the TOD clock */
 #define STCK(T) ((T) = ((* ((cpu_t *) TODLOADDR)) / (* ((cpu_t *) TIMESCALEADDR))))
 
-/**
- * This macro assumes that both RAMBASEADDR and RAMBASESIZE are
- * both defined with the appropriate addresses (from the beginning of the Bus Register area.
- * */
 #define RAMTOP(T) ((T) = ((* ((int *) RAMBASEADDR)) + (* ((int *) RAMBASESIZE))))
 
 #endif

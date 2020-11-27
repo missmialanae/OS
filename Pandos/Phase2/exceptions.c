@@ -50,12 +50,12 @@ void sysTrapH()
     sysNum = ((state_t *)BIOSDATAPAGE)->s_a0;
 
     /*check if in kernel mode*/
-    if (sysNum >= 1 && sysNum <= 8 && (((state_t *)BIOSDATAPAGE)->s_status & USERPREVON) == 1)
+    if (sysNum >= 1 && sysNum <= 8 && (((state_t *)BIOSDATAPAGE)->s_status & USER) == 1)
     {
         /*change cause privs if not in kernal*/
 
         ((state_t *)BIOSDATAPAGE)->s_cause =
-            (((state_t *)BIOSDATAPAGE)->s_cause & CLEARCAUSE) | (NOTPRIVINSTRUCT << SHIFTCAUSE);
+            (((state_t *)BIOSDATAPAGE)->s_cause & CLEAR) | (NOTPRIV << SHIFT);
 
         /*call program trap*/
         pgmTrapH();
@@ -69,7 +69,7 @@ void sysTrapH()
     currentproc->p_s.s_pc += 4; /*update stack pointer*/
 
     /*checks which sys it should go to*/
-    if (sysNum == MAKEPROCESS)
+    if (sysNum == CREATEPROCESS)
     {
         int returnInt;
         returnInt = sys1();
@@ -78,7 +78,7 @@ void sysTrapH()
         contextSwitch(currentproc);
     }
 
-    if (sysNum == KILLPROCESS)
+    if (sysNum == TERMINATEPROCESS)
     {
         sys2(currentproc);
 
@@ -108,13 +108,13 @@ void sysTrapH()
         contextSwitch(currentproc);
     }
 
-    if (sysNum == CLOCKSEMA4)
+    if (sysNum == CLOCK)
     {
         sys7();
         contextSwitch(currentproc);
     }
 
-    if (sysNum == SUPPORTDATA)
+    if (sysNum == SUPPORTPTR)
     {
         support_t *info = sys8();
         currentproc->p_s.s_v0 = info;
@@ -158,7 +158,7 @@ int sys1()
 
     insertProcQ(&readyQ, newPcb);
     insertChild(currentproc, newPcb);
-    return OK; /*put 0 in v0 when we make a process*/
+    return OKAY; /*put 0 in v0 when we make a process*/
 }
 
 

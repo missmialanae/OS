@@ -48,7 +48,7 @@ void scheduleProcess()
 
         /*start the clock*/
         STCK(startTime);     
-        setTIMER(STANQUANTUM); 
+        setTIMER(QUANTUM); 
         
         contextSwitch(newProc);
     }
