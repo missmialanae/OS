@@ -34,24 +34,11 @@ typedef struct state_t {
 
 } state_t, *state_PTR;
 
-typedef struct pgTableEntry_t{
-	unsigned int pgTE_entryHi,
-				 pgTE_entryLo;
-} pgTableEntry_t;
-
-
 typedef struct support_t {
 int 			sup_asid;/* Process Id (asid)*/
 state_t			sup_exceptState[2];/* stored excpt states */
 context_t		sup_exceptContext[2]; /* pass up context*/
-pgTableEntry_t	sup_pageTable;
 } support_t;
-
-typedef struct swap_t{
-	int        sw_asid;
-	int        sw_pageN;
-	pgTableEntry_t *sw_pte;
-} swap_t;
 
 
 /* Exceptions related constants */
@@ -68,8 +55,8 @@ struct pcb_t			*p_next,		/*pointer to next entry*/
 /*process tree fields*/
 						*p_prnt,     /*pointer to parent*/
 						*p_child,    /*pointer to 1st child*/
-						*p_sib_next, /*pointer to next sibling*/
-						*p_sib_prev; /*pointer to previous sibling*/
+						*p_sib, /*pointer to next sibling*/
+						*p_prevSib; /*pointer to previous sibling*/
 /*process status information*/
 state_t             p_s;         /*processor state*/
 cpu_t               p_time;      /*cpu time used by proc*/

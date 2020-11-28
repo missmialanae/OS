@@ -15,8 +15,7 @@
  */
 
 /*semaphore descriptor type */
-typedef struct semd_t
-{
+typedef struct semd_t{
     struct semd_t *s_next; /* next element on the ASL */
     int *s_semAdd;         /* pointer to the semaphore*/
     pcb_t *s_procQ;        /* tail pointer to a*/
@@ -80,12 +79,10 @@ void initASL()
  * Or not found -> allocate new node and put it into the active list 
  * then preform found case.
 **/
-int insertBlocked(int *semAdd, pcb_PTR p)
-{
+int insertBlocked(int *semAdd, pcb_PTR p){
     semd_PTR ASLPrev = searchASL(semAdd); /*dummy pointer to insert location in ASL*/
 
-    if (ASLPrev->s_next->s_semAdd == semAdd)
-    {
+    if (ASLPrev->s_next->s_semAdd == semAdd){
         /*if sema4 already in ASL*/
         p->p_semAdd = semAdd;
         insertProcQ(&(ASLPrev->s_next->s_procQ), p); /*insert p into Q in ASL*/
@@ -95,8 +92,7 @@ int insertBlocked(int *semAdd, pcb_PTR p)
 
     /*if we don't find, allocate*/
 
-    if (semdFree_h == NULL)
-    {
+    if (semdFree_h == NULL){
         /*if the free list is empty, there is an error*/
         return TRUE;
     }
@@ -231,14 +227,8 @@ semd_PTR allocASL(int *semAdd)
     return newSemd;
 }
 
-/**
- * This method takes in the sema4 pointer to the previous 
- * sema4 on the ASL and removes the next sema4 on the ASL.
- * Note, we check in outBlocked and removeBlocked that the 
- * sema4 we want to remove has an empty queue. 
- * */
-void backToFreeList(semd_PTR prevSema4)
-{
+
+void backToFreeList(semd_PTR prevSema4){
     semd_PTR tempRemoval = prevSema4->s_next; /*Dummy pointer to next sema4 on ASL*/
 
     prevSema4->s_next = tempRemoval->s_next;
