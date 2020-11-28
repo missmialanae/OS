@@ -1,91 +1,73 @@
+/*including all necessary files*/
 #include "../h/const.h"
 #include "../h/types.h"
 #include "../h/asl.h"
 #include "../h/pcb.h"
 
-/********************************************************************
- * This file contains the ASL which is a semaphore that contains 
- * an address (semAdd) and a process queue. It also contains two lists.
- * Both are NULL terminated single, linear list. The first list is the 
- * Active Semaphore List or ASL and it's a list sorted by semAdd from 0 
- * to MAXINT. The second list is a semaphore descriptors (semdFree list)
- * that holds the unused semaphore descriptors. A max of 20 semaphores can be used.
+/**************************************************************************** 
  * 
+ *  This file contains all methods and instruction for ASL. 
  * 
- */
+ ****************************************************************************/
 
 /*semaphore descriptor type */
-typedef struct semd_t{
-    struct semd_t *s_next; /* next element on the ASL */
-    int *s_semAdd;         /* pointer to the semaphore*/
-    pcb_t *s_procQ;        /* tail pointer to a*/
-                           /* process queue*/
-} semd_t;
+typedef struct semd_t {
+    struct semd_t *s_next;   /*next element on the ASL */
+    int           *s_semAdd; /*pointer to the sempahore */
+    pcb_t         *s_procQ;  /* tail pointer to a */
+                         /*process queue */
+} semd_t; 
 
-/*local functions*/
+/*GLOBALS*/
+HIDDEN semd_t *semd_h, *semdFree_h;
 
-HIDDEN semd_PTR searchASL(int *semAdd); /*searches through ASL and finds the sema4*/
-HIDDEN semd_PTR allocASL(int *semAdd);  /*allocs sema4*/
-HIDDEN void backToFreeList(semd_PTR prevSema4);
+/*defining local variables */
+HIDDEN semd_t* findsem(int *semAdd);
+HIDDEN semd_PTR allocation(int *sem);  
+HIDDEN void backToFreeList(semd_t *oldSem);
 
-/*end of local functions*/
+void initASL(){
+    /*initialize the semdFree list to contain all the elements 
+    of the array called only once*/ 
 
-/*globals*/
-
-HIDDEN semd_PTR semdFree_h; /*free list that is unsorted*/
-HIDDEN semd_PTR semd_h;     /*sorted sema4 list*/
-
-/*end of globals*/
-
-/**
- * This method initializes the semdFree list to contain all the elements of the array
- * static semd t semdTable[MAXPROC] This method will be only called once during data 
- * structure initialization.
-**/
-void initASL()
-{
     int i;
 
-    static semd_t semdTable[MAXPROC + 2]; /* make a table with MAXPROC+2 entries*/
+    static semd_t semdTable[MAXPROC+2]; /*plus 2 for the dummy nodes*/ 
+    semdFree_h = &semdTable[0]; 
 
-    semdFree_h = &semdTable[0]; /*set free list pointer to beginning of list*/
-
-    for (i = 1; i < MAXPROC; i++)
-    {
-        /*initialize semdFree List*/
-        semdTable[i - 1].s_next = &semdTable[i];
+    for (i=1; i< MAXPROC; i++){
+        semdTable[i-1].s_next = &semdTable[i];
     }
 
-    semdTable[MAXPROC - 1].s_next = NULL; /*last one on free list has no next*/
-
-    semd_h = &semdTable[MAXPROC]; /*set 2nd last sema4 to head of sorted ASL*/
-
-    semd_h->s_next = &semdTable[MAXPROC + 1]; /*next one is last ASL entry*/
-
-    semd_h->s_next->s_next = NULL; /*no other next on sorted ASL*/
-
-    semd_h->s_semAdd = 0;              /*head of ASL list has semdAdd 0*/
-    semd_h->s_next->s_semAdd = MAXINT; /*tail of ASL list has semdAdd near infinity*/
-
+    /*setting boundaries and fields */
+    semdTable[MAXPROC - 1].s_next = NULL; 
+    semd_h = &semdTable[MAXPROC];
+    semd_h->s_semAdd = 0;
     semd_h->s_procQ = mkEmptyProcQ();
-    semd_h->s_next->s_procQ = mkEmptyProcQ();
+    semd_h->s_next = &semdTable[MAXPROC+1];
+    semd_h->s_next->s_semAdd = MAXINT; /*make int is infinity*/
+    semd_h->s_next->s_procQ = mkEmptyProcQ(); 
+    semd_h->s_next->s_next = NULL; 
 
     return;
-}
+}/*initASL*/
 
-/**
- * This method searches the active semdList for a semAdd.
- * Two cases: found -> calls insertProcQ 
- * Or not found -> allocate new node and put it into the active list 
- * then preform found case.
-**/
-int insertBlocked(int *semAdd, pcb_PTR p){
-    semd_PTR ASLPrev = searchASL(semAdd); /*dummy pointer to insert location in ASL*/
+int insertBlocked(int *semAdd, pcb_t *p){
 
-    if (ASLPrev->s_next->s_semAdd == semAdd){
-        /*if sema4 already in ASL*/
+    /* insert the pcb pointed to by p at the tail of the process queue associated with the semaphore whose 
+    physical address is semAdd address of p to semAdd. If the sempahore is not active: allocate 
+    a new descriptor from the semdFree list, insert it in the ASL, initialize all of the fields. Return true 
+    and false */
+
+    /*if a new semaphore descriptor needs to be allocated and the semdFree list is empty, return true*/
+
+     semd_PTR previous = findsem(semAdd); /*dummy pointer to insert location in ASL*/
+
+    if (previous->s_next->s_semAdd == semAdd){
         p->p_semAdd = semAdd;
-        insertProcQ(&(ASLPrev->s_next->s_procQ), p); /*insert p into Q in ASL*/
+
+        /*insert p into Q in ASL*/
+        insertProcQ(&(previous->s_next->s_procQ), p); 
 
         return FALSE;
     }
@@ -93,147 +75,118 @@ int insertBlocked(int *semAdd, pcb_PTR p){
     /*if we don't find, allocate*/
 
     if (semdFree_h == NULL){
-        /*if the free list is empty, there is an error*/
+       
         return TRUE;
     }
 
     /*remove semd from Free list and add to ASL, then and insert pcb into new semd */
 
-    semd_t *newSemd = allocASL(semAdd); /*allocate new sema4*/
-    semd_t *ASLNext = ASLPrev->s_next;  /*find next in line*/
+    semd_t *newSem = allocation(semAdd); 
+    semd_t *next = previous->s_next;  
 
-    ASLPrev->s_next = newSemd;
+    previous->s_next = newSem;
     p->p_semAdd = semAdd;
-    newSemd->s_next = ASLNext;
+    newSem->s_next = next;
 
-    insertProcQ(&(newSemd->s_procQ), p);
+    insertProcQ(&(newSem->s_procQ), p);
 
-    return FALSE; /*return false if semdFree not empty*/
-}
+    return FALSE;
 
-/**
- * Search ASL for sema4 with given semdAdd and remove 
- * pcb using removeProcQ() from queue of that sema4 if present.
- * Free sema4 if the queue is empty, otherwise go on. 
- * If sema4 not found -> error case
-**/
-pcb_PTR removeBlocked(int *semAdd)
-{
-    semd_PTR tempSemAdd = searchASL(semAdd); /*dummy pointer to sema4 on ASL*/
+}/*insertBlocked*/
 
-    if (tempSemAdd->s_next->s_semAdd == semAdd)
-    {
-        /*Found sema4 with given semAdd*/
+pcb_t* removeBlocked(int *semAdd){
+    /*Search the ASL for a descriptor of this semaphore. If none is found, return NULL; otherwise, remove the head
+    pcb from the process queue of the found semaphore descriptor and return a pointer to it. If the process queue 
+    for this semaphore becomes empty (emptyProcQ(s procq) is TRUE), remove the semaphore descriptor from 
+    the ASL and return it to the semdFree list. */
 
-        pcb_PTR returnP = removeProcQ(&(tempSemAdd->s_next->s_procQ)); /*remove pcb from queue*/
-
-        if (emptyProcQ(tempSemAdd->s_next->s_procQ))
-        {
-            /*if queue empty, put sema4 back on free list*/
-            backToFreeList(tempSemAdd);
+    /*search for the semAdd*/
+    semd_t *temp = findsem(semAdd);
+    if(temp->s_next->s_semAdd == semAdd){
+        pcb_t *removedPCB = removeProcQ(&(temp->s_next->s_procQ)); /*dummy node to return at end*/
+        if(emptyProcQ(temp->s_next->s_procQ) == TRUE){
+            back(temp);
         }
 
-        /*if process queue not empty/we're done adjusting the ASL, then return*/
-        return (returnP);
+        return removedPCB; 
     }
+    return NULL; 
+}/*removeBlocked*/
 
-    /*if temp and semAdd don't match, then semAdd not in ASL, so error*/
-    return NULL;
-}
+pcb_t* outBlocked(pcb_t *p){
+    /* Remove the pcb pointed to by p from the process queue associated with p’s semaphore (p→ p semAdd) on the ASL. 
+    If pcb pointed to by p does not appear in the process queue associated with p’s semaphore, which is an error condition, r
+    eturn NULL; otherwise, return p. */
 
-/**
- * This is a mutator method that removes the pcb p from the process 
- * queue of p’s semaphore (p → p semAdd) on the ASL. 
-**/
-pcb_PTR outBlocked(pcb_PTR p)
-{
-    semd_PTR tempSemAdd = searchASL(p->p_semAdd); /*dummy pointer to p's sema4 on ASL*/
-
-    if (tempSemAdd->s_next->s_semAdd == p->p_semAdd)
-    {
-        /*if semd that contains p is found*/
-        pcb_PTR returnP = outProcQ(&(tempSemAdd->s_next->s_procQ), p); /*removed pcb*/
-
-        if (emptyProcQ(tempSemAdd->s_next->s_procQ))
-        {
-            /*if queue is empty, return sema4 back to free list*/
-            backToFreeList(tempSemAdd);
+    semd_t *temp = findsem(p->p_semAdd);
+    if(temp->s_next->s_semAdd == p->p_semAdd){
+        pcb_t *outPCB = outProcQ(&(temp->s_next->s_procQ), p); /*dummy node to call at end */
+        if(emptyProcQ(temp->s_next->s_procQ)){
+            back(temp);
         }
 
-        /*once done with semaphore, return p*/
-        return returnP;
+        return outPCB; 
     }
+    /*error condition*/
+    return NULL; 
+}/*outBlocked*/
 
-    /*if semd not on list, error*/
-    return NULL;
-}
+pcb_t* headBlocked(int *semAdd){
+    /* return to the pcb that is at the head of the process queue associated to that semAdd */
 
-/**
- * This is an accessor method returns a pointer to the pcb at the 
- * head of the process queue associated with the semaphore with given 
- * semAdd. Return NULL if semAdd is not on the ASL or if the process 
- * queue is empty.
-**/
-pcb_PTR headBlocked(int *semAdd)
-{
-    semd_t *tempSemAdd = searchASL(semAdd); /*dummy pointer to sema4 on ASL with semAdd*/
-    if (tempSemAdd->s_next->s_semAdd == semAdd)
-    {
-        /*If sema4 with semAdd is found*/
+    semd_t *temp = findsem(semAdd);/*creating a pcb to hold sem add*/ 
 
-        if (emptyProcQ(tempSemAdd->s_next->s_procQ))
-        {
-            /*If sema4 queue is empty*/
+    if(temp->s_next->s_semAdd == semAdd){
+        /*process queue is empty return NULL*/
+        if(emptyProcQ(temp->s_next->s_procQ)){
             return NULL;
         }
-
-        return headProcQ(tempSemAdd->s_next->s_procQ); /*If queue not empty return head*/
+        return headProcQ(temp->s_next->s_procQ); 
     }
-    return NULL; /*If semd not found*/
+    /* return NULL if semAdd is not found in ASL*/
+
+    return NULL;
+
+}/* headblocked */
+
+semd_t* allocation(int *sem){
+
+    /*hopefully this will fix the issues with ASL*/
+
+    semd_t *new = semdFree_h;
+    semdFree_h = new->s_next;
+    new->s_next = NULL;
+    new->s_semAdd = sem;
+    new->s_procQ = mkEmptyProcQ();
+
+    return new; 
 }
 
+void back(semd_t *oldSem){
 
-/************************************LOCAL FUNCTIONS***************************************/
+    /*fix asl issues for phase 2*/
+    semd_t *temp;
 
-/**
- * Method that cycles through the ASL and finds the closest  
- * value less than given semAdd. Returns pointer to previous sema4. 
-**/
-semd_PTR searchASL(int *semAdd)
-{
-    semd_t *temp = semd_h; /*dummy node pointing to the head*/
+    temp = oldSem->s_next;
 
-    while (temp->s_next->s_semAdd < semAdd)
-    {
-        /*Finds prev semd in ASL*/
+    oldSem->s_next = temp->s_next;
+
+    temp->s_next = semdFree_h;
+
+    semdFree_h = temp;
+}
+
+semd_t* findsem(int *semAdd){
+    /* find the semAdd that is being called need. Basically a search function to search for semAdds*/
+
+    semd_t *temp = semd_h;
+
+    while(temp->s_next->s_semAdd < semAdd){
         temp = temp->s_next;
     }
 
-    return temp; /*returns prev*/
-}
+    return temp; 
+    
+}/*findsem*/
 
-/**
- * Allocates a semd from the semdFree list, assigns it 
- * a given semAdd, and creates an empty queue. Returns 
- * pointer to newly created sema4.
- **/
-semd_PTR allocASL(int *semAdd)
-{
-    semd_PTR newSemd = semdFree_h; /*get new semd from list*/
-    semdFree_h = newSemd->s_next;
-    newSemd->s_next = NULL;
-    newSemd->s_semAdd = semAdd;
-    newSemd->s_procQ = mkEmptyProcQ();
-    return newSemd;
-}
-
-
-void backToFreeList(semd_PTR prevSema4){
-    semd_PTR tempRemoval = prevSema4->s_next; /*Dummy pointer to next sema4 on ASL*/
-
-    prevSema4->s_next = tempRemoval->s_next;
-    tempRemoval->s_next = semdFree_h;
-
-    tempRemoval->s_semAdd = NULL;
-    semdFree_h = tempRemoval;
-}
+/***************END***********************/

@@ -18,10 +18,7 @@ typedef struct semd_t {
 				   		 /*process queue */
 } semd_t; 
 
-
-/*semd_h points to active list*/
-/*semdFree_h points to free list*/
-
+/*GLOBALS*/
 HIDDEN semd_t *semd_h, *semdFree_h;
 
 /*defining local variables */
@@ -49,6 +46,8 @@ void initASL(){
 	semd_h->s_next->s_semAdd = MAXINT; /*make int is infinity*/
 	semd_h->s_next->s_procQ = mkEmptyProcQ(); 
 	semd_h->s_next->s_next = NULL; 
+
+	return
 }/*initASL*/
 
 int insertBlocked(int *semAdd, pcb_t *p){
@@ -60,40 +59,35 @@ int insertBlocked(int *semAdd, pcb_t *p){
 
 	/*if a new semaphore descriptor needs to be allocated and the semdFree list is empty, return true*/
 
-	semd_t *temp = findsem(semAdd); /* finding the semaddress*/
-	if(temp->s_next->s_semAdd == semAdd){/* found the semAdd in the list */
-		p->p_semAdd = semAdd; 
-		insertProcQ(&(temp->s_next->s_procQ),p);
-		
-		return FALSE; 
-	}
+	 semd_PTR ASLPrev = findsem(semAdd); /*dummy pointer to insert location in ASL*/
 
-	/*if a new semaphore descriptor needs to be allocated and the semdFree list is empty, meaning that we don't have any semaphores
-	return true*/
-	if(semdFree_h == NULL){
-		return TRUE;
+    if (ASLPrev->s_next->s_semAdd == semAdd){
+        /*if sema4 already in ASL*/
+        p->p_semAdd = semAdd;
+        insertProcQ(&(ASLPrev->s_next->s_procQ), p); /*insert p into Q in ASL*/
 
-	}
+        return FALSE;
+    }
 
-	/*if the list is not empty and therefore I can use them*/
+    /*if we don't find, allocate*/
 
-	/*so we remove from the top of the stack therefore we have to set the next asl to be the new pointer ot the head*/
-	semd_t *newSem = semdFree_h;
-	semdFree_h = newSem->s_next;
+    if (semdFree_h == NULL){
+        /*if the free list is empty, there is an error*/
+        return TRUE;
+    }
 
-	/*this allows us to remove it from free list and allocate the stuff for it */
-	newSem->s_procQ = mkEmptyProcQ();
-	newSem->s_semAdd = semAdd; 
-	newSem->s_next = NULL;
+    /*remove semd from Free list and add to ASL, then and insert pcb into new semd */
 
-	/*how do we make sure it is on the active list*/
-	temp = findsem(newSem->s_semAdd);
-	newSem->s_next = temp->s_next;
-	temp->s_next = newSem;
-	p->p_semAdd = semAdd;
-	insertProcQ(&(newSem->s_procQ),p);
-	return FALSE; 
+    semd_t *newSemd = allocASL(semAdd); /*allocate new sema4*/
+    semd_t *ASLNext = ASLPrev->s_next;  /*find next in line*/
 
+    ASLPrev->s_next = newSemd;
+    p->p_semAdd = semAdd;
+    newSemd->s_next = ASLNext;
+
+    insertProcQ(&(newSemd->s_procQ), p);
+
+    return FALSE; /*return false if semdFree not empty*/
 }/*insertBlocked*/
 
 pcb_t* removeBlocked(int *semAdd){
@@ -107,11 +101,7 @@ pcb_t* removeBlocked(int *semAdd){
 	if(temp->s_next->s_semAdd == semAdd){
 		pcb_t *removedPCB = removeProcQ(&(temp->s_next->s_procQ)); /*dummy node to return at end*/
 		if(emptyProcQ(temp->s_next->s_procQ) == TRUE){
-			semd_t *remove = temp->s_next;
-			temp->s_next = remove->s_next; 
-			remove->s_next = NULL;
-			remove->s_next = semdFree_h;
-			semdFree_h = remove;
+			back(temp);
 		}
 
 		return removedPCB; 
@@ -128,11 +118,7 @@ pcb_t* outBlocked(pcb_t *p){
 	if(temp->s_next->s_semAdd == p->p_semAdd){
 		pcb_t *outPCB = outProcQ(&(temp->s_next->s_procQ), p); /*dummy node to call at end */
 		if(emptyProcQ(temp->s_next->s_procQ)){
-			semd_t *remove = temp->s_next;
-			temp->s_next = remove->s_next;
-			remove->s_next = NULL;
-			remove->s_next = semdFree_h;
-			semdFree_h->s_next = remove; 
+			back(temp);
 		}
 
 		return outPCB; 
@@ -158,6 +144,33 @@ pcb_t* headBlocked(int *semAdd){
 	return NULL;
 
 }/* headblocked */
+
+semd_t* allocation(int *sem){
+
+	/*hopefully this will fix the issues with ASL*/
+
+	semd_t *new = semdFree_h;
+	semdFree_h = new->s_next;
+	new->s_next = NULL;
+	new->s_semAdd = sem;
+	newSem->s_procQ = mkEmptyProcQ();
+
+	return new; 
+}
+
+void back(semd_t *oldSem){
+
+	/*fix asl issues for phase 2*/
+	semd_t *temp;
+
+	temp = oldSem->s_next;
+
+	oldSem->s_next = temp->s_next;
+
+	temp->s_next = semdFree_h;
+
+	semdFree_h = temp;
+}
 
 semd_t* findsem(int *semAdd){
 	/* find the semAdd that is being called need. Basically a search function to search for semAdds*/

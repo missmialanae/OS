@@ -13,12 +13,11 @@ getClock                         :FUN:0x20004410:0x0000008C:LOC
 getSupport                       :FUN:0x2000449C:0x00000058:LOC
 blockCurrent                     :FUN:0x2000475C:0x0000007C:LOC
 calcTime                         :FUN:0x200047D8:0x00000088:LOC
-semdFree_h                       :OBJ:0x20007050:0x00000004:LOC
-semd_h                           :OBJ:0x20007054:0x00000004:LOC
+semd_h                           :OBJ:0x20007050:0x00000004:LOC
+semdFree_h                       :OBJ:0x20007054:0x00000004:LOC
 semdTable.1045                   :OBJ:0x20007058:0x00000108:LOC
-searchASL                        :FUN:0x20004D80:0x0000007C:LOC
-allocASL                         :FUN:0x20004DFC:0x00000088:LOC
-backToFreeList                   :FUN:0x20004E84:0x00000084:LOC
+findsem                          :FUN:0x20004E88:0x0000007C:LOC
+allocation                       :FUN:0x20004D88:0x00000088:LOC
 pcbfree_h                        :OBJ:0x20007160:0x00000004:LOC
 foo.1033                         :OBJ:0x20007164:0x00000DC0:LOC
 trapH                            :FUN:0x20003060:0x0000020C:GLB
@@ -27,6 +26,7 @@ p4state                          :OBJ:0x20007F30:0x0000008C:GLB
 print                            :FUN:0x200010F0:0x0000011C:GLB
 p5Stack                          :OBJ:0x20007FBC:0x00000004:GLB
 headProcQ                        :FUN:0x20005130:0x00000058:GLB
+back                             :FUN:0x20004E10:0x00000078:GLB
 setSTATUS                        :FUN:0x20005A4C:0x0000001C:GLB
 creation                         :OBJ:0x2000703C:0x00000004:GLB
 term_mut                         :OBJ:0x20007000:0x00000004:GLB
@@ -55,7 +55,7 @@ getEPC                           :FUN:0x200059B4:0x00000014:GLB
 PANIC                            :FUN:0x20005C00:0x00000014:GLB
 insertBlocked                    :FUN:0x200049CC:0x00000138:GLB
 TLBCLR                           :FUN:0x20005AD4:0x00000014:GLB
-headBlocked                      :FUN:0x20004CB8:0x000000C8:GLB
+headBlocked                      :FUN:0x20004CC0:0x000000C8:GLB
 p5sys                            :FUN:0x200026EC:0x000000D0:GLB
 removeProcQ                      :FUN:0x20005294:0x0000014C:GLB
 LDCXT                            :FUN:0x20005B0C:0x00000020:GLB
@@ -64,7 +64,7 @@ setENTRYHI                       :FUN:0x20005A30:0x0000001C:GLB
 p5                               :FUN:0x200027BC:0x0000005C:GLB
 p7state                          :OBJ:0x200080D8:0x0000008C:GLB
 readyQueue                       :OBJ:0x200087E0:0x00000004:GLB
-removeBlocked                    :FUN:0x20004B04:0x000000CC:GLB
+removeBlocked                    :FUN:0x20004B04:0x000000D4:GLB
 p3state                          :OBJ:0x20008164:0x0000008C:GLB
 currentproc                      :OBJ:0x200087E4:0x00000004:GLB
 emptyChild                       :FUN:0x20005568:0x00000040:GLB
@@ -107,7 +107,7 @@ p4inc                            :OBJ:0x20007008:0x00000004:GLB
 TLBWI                            :FUN:0x20005A98:0x00000014:GLB
 timeSlice                        :OBJ:0x200088AC:0x00000004:GLB
 getCAUSE                         :FUN:0x200059A0:0x00000014:GLB
-outBlocked                       :FUN:0x20004BD0:0x000000E8:GLB
+outBlocked                       :FUN:0x20004BD8:0x000000E8:GLB
 p6state                          :OBJ:0x200084CC:0x0000008C:GLB
 gchild2state                     :OBJ:0x20008558:0x0000008C:GLB
 setENTRYLO                       :FUN:0x200059F8:0x0000001C:GLB
