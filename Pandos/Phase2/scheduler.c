@@ -15,84 +15,83 @@
  * removes a PCB from the head of the queue and stores the pointer to a PCB in 
  * the current process in the ready queue. Loads a milliseconds on the PLT.
  * Performs a load processor state on the processor state stored in PCB of the 
- * Current Process. 
- */
+ * Current Process.
+ * 
+ *********************************************************************************/
 
 
 
-/*switches to the process that needed to be in control*/
-void contextSwitch(pcb_t *process)
-{   
+void contextSwitch(pcb_t *next){   
+    /**This function performs a load state so that the next process that needs to be in 
+     **control is in control. This is basically a context switch*/
+
     /*make sure current proc is set*/
-    currentproc = process;
+    currentproc = next;
 
     /*call loadstate*/
-    LDST(&(process->p_s));
+    LDST(&(next->p_s));
 
 }
 
+void scheduleProcess(){
+    /**This function takes the next process that is on the ready queue and makes it the 
+     **the current process. Given the state of the process count and softblock will control
+     **whether it PANIC, HALT, OR WAIT.*/
 
-/*takes the next process on the ready queue, and makes it the current process.*/
-void scheduleProcess()
-{
 
     /*local variables*/
-    pcb_t *newProc;
-    unsigned int waitState;
+    pcb_t *nextProc;
+    unsigned int procState;
     
 
     /*if ready queue isnt empty*/
-    if (readyQ != NULL)
-    {
-        newProc = removeProcQ(&readyQ);/*remove it from the queue*/
+    if (readyQueue != NULL){
+        nextProc = removeProcQ(&readyQueue);/*remove it from the queue*/
 
         /*start the clock*/
-        STCK(startTime);     
+        STCK(startTOD);     
         setTIMER(QUANTUM); 
         
-        contextSwitch(newProc);
+        contextSwitch(nextProc);
     }
 
     /*if no processes, halt*/
-    if (processcnt == 0)
-    {
+    if (processcnt == 0){
         HALT(); 
     }
 
     
-    if (processcnt > 0 && softBlock > 0)
-    {
+    if (processcnt > 0 && softBlock > 0){
         currentproc = NULL;
         setTIMER(MAXINT); 
     
         /*fix status*/
-        waitState = (ALLOFF | IECURRENTON | IMASKON | TIMEREBITON);
+        procState = (ALLOFF | IECURRENTON | IMASKON | TIMEREBITON);
 
-        setSTATUS(waitState);
+        setSTATUS(procState);
 
         WAIT();
     }
 
     /*anything else just panis*/
-    if (processcnt > 0 && softBlock == 0)
-    {
+    if (processcnt > 0 && softBlock == 0){
         PANIC();
     }
 
     return;
     
-}/*****END OF SCEDUALEPROCESS*/
-
-
-
-/*this prepares the interval timer for given pcb, call this when you need to load new process,
-and for clock and io interrupts*/
-void intervalSwitch(cpu_t specificTime)
-{
-    STCK(startTime); /*call the STCK to read the clock*/
-    setTIMER(specificTime); /*set the timer to time given*/
-
-    contextSwitch(currentproc);
 }
 
-/***********************END*****************************/
+void intervalSwitch(cpu_t setTime){
+    /*This function is a helper funtion that set the interval timer for a function at
+     **the beginning of a new process and for different interrupts that can occur*/
+
+    /*reads the start clock*/
+    STCK(startTOD); 
+
+    /*set the timer*/
+    setTIMER(setTime);
+
+    /*call a loadstate*/
+    contextSwitch(currentproc);
+}

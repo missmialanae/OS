@@ -10,7 +10,7 @@ the external declaration file for the scheduler*/
 #include "../h/types.h"
 
 extern void scheduleProcess();
-extern void contextSwitch(pcb_t *process);
-extern void intervalSwitch(cpu_t specificTime);
+extern void contextSwitch(pcb_t *next);
+extern void intervalSwitch(cpu_t getTime);
 
 #endif

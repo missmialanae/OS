@@ -7,80 +7,87 @@
 #include "../h/initial.h"
 #include "../h/scheduler.h"
 
-/**************************************************
-* Thie file contains all methods and instruction for interrupts. This file controls
-* context switches and deals with the mapping of all the devices through. 
-* deals with non timer interrupts, plt interrups, 
-* and the system wide intercal timer 
-* and psuedoclock
+/***********************************************************************************
 *
+* Thie file contains all methods and instruction for interrupts. This file contains 
+* the instructions for trapH and deals with the the proper protocol once it is 
+* passed to the proper response. This file contains the instructions for the 
+* local timer(PLT), handling of Pseudo Clock Ticks, and IO handling as well as the 
+* bitmapping and terminal input and output. 
 *
-/**************************************************/
+/************************************************************************************/
 
 /*externs*/
 
-HIDDEN void localTimer(cpu_t time);
-HIDDEN void pseudoInterrupts();
-HIDDEN void deviceIOHandler(int deviceType);
+HIDDEN void plt(cpu_t time);
+HIDDEN void pseudo();
+HIDDEN void IOHandler(int lineNum);
 
 
 
-/*method to do the specific actions when an interrupt occurs and what caused it*/
-void trapH()
-{
+
+void trapH(){
+    /**This method to do the specific actions when an interrupt occurs and what caused it*/
 
     /*local variables*/
-    cpu_t stopTime;
-    cpu_t quantumTimer;
+    cpu_t stop; /*relates to end of the time*/
+    cpu_t quantum;
     
+    /*read the stop clock*/
+    STCK(stop);
 
-    STCK(stopTime);
-    quantumTimer = getTIMER();
+    /*gets the quantum timer*/
+    quantum = getTIMER();
 
-    /*determining cause of interrupt*/
+    /*determines the cause of interrupt*/
 
-    if (((((state_t *)BIOSDATAPAGE)->s_cause) & PLTINTERRUPT) != 0)
-    {
+    if (((((state_t *)BIOSDATAPAGE)->s_cause) & PLTINTERRUPT) != 0){
+
         /*local timer interrupt*/
-        localTimer(stopTime);
+        plt(stop);
     }
 
     else if (((((state_t *)BIOSDATAPAGE)->s_cause) & PSEUDOCLOCKINT) != 0)
     {
         /*timer interrupt*/
-        pseudoInterrupts();
+        pseudo();
     }
 
     else if (((((state_t *)BIOSDATAPAGE)->s_cause) & DISKINTERRUPT) != 0)
     {
         /*disk interrupt*/
-        deviceIOHandler(DISKINT);
+        IOHandler(DISKINT);
     }
 
     else if (((((state_t *)BIOSDATAPAGE)->s_cause) & FLASHINTERRUPT) != 0)
     {
         /*flash interrupt*/
-        deviceIOHandler(FLASHINT);
+        IOHandler(FLASHINT);
     }
 
     else if (((((state_t *)BIOSDATAPAGE)->s_cause) & PRINTINTERRUPT) != 0)
     {
         /*print interrupt*/
-        deviceIOHandler(PRNTINT);
+        IOHandler(PRNTINT);
     }
 
     else if (((((state_t *)BIOSDATAPAGE)->s_cause) & TERMINALINTERRUPT) != 0)
     {
         /*terminal interrupt*/
-        deviceIOHandler(TERMINT);
+        IOHandler(TERMINT);
     }
 
-    if (currentproc != NULL)
-    {
+    /*if the currentproc is not NULL*/
+    if (currentproc != NULL){
 
-        currentproc->p_time += (stopTime - startTime);
+        /*get the time*/
+        currentproc->p_time += (stop - startTOD);
+
+        /*call move state and move the BIOSDATAPAGE to the currentproc's*/
         moveState((state_t *)BIOSDATAPAGE, &(currentproc->p_s));
-        intervalSwitch(quantumTimer);
+
+        /*call intervalswitch for quantum clock*/
+        intervalSwitch(quantum);
     }
 
     else
@@ -90,205 +97,208 @@ void trapH()
         HALT();
     }
 
-}/**end of trapH**/
+}
 
+void plt(cpu_t timeStop){
+    /**This function handles the procedures dealing with cpu and if the cpu will generates
+     **any sort of clock interrupts. The function is given an end time*/
 
-/*handles the procedures to handle cpu when it generates a clock interrupt*/
-void localTimer(cpu_t timeStop)
-{
     /*if no currentproc, panic*/
-    if (currentproc == NULL)
-    {
+    if (currentproc == NULL){
         PANIC();
     }
 
-
-    currentproc->p_time += (timeStop - startTime);
+    /*calculate the time*/
+    currentproc->p_time += (timeStop - startTOD);
+    /*call movestate for BIOSDATATPAGE and move it to currentproc's s register*/
     moveState((state_t *)BIOSDATAPAGE, &(currentproc->p_s));
 
-    insertProcQ(&readyQ, currentproc);
+    /*insert it*/
+    insertProcQ(&readyQueue, currentproc);
+
+    /*set the currentproc to NULL*/
     currentproc = NULL;
 
-    /*put back on ready queue and schedule next*/
+    /*schedule next*/
     scheduleProcess();
-}/**end of local timer**/
+}
 
+void pseudo(){
+    /**This function handles the pseudo clock ticks. It will perform a v (sys 4) operation
+     **evert 100 millisecond to maintain a semaphore list called the pseudo clock*/
 
-/*this function hancles pseudo clock tick. performs v operations every 100 milliseconds
-on nucelus maintained sema4 list called psuedoclock*/
-void pseudoInterrupts()
-{
     /*local variable*/
-    pcb_t *removedPcbs;
+    pcb_t *removedPcbs; /* pcb that is being removed*/
 
 
-    LDIT(PSEUDO);/*reset psuedoclock*/
+    LDIT(PSEUDO);/*reset psuedoc lock*/
 
-    removedPcbs = removeBlocked(&(deviceSema4[DEVPERINT + DEVCNT]));
+    /*sets the removedPcbs to the removed block with the address of the device*/
+    removedPcbs = removeBlocked(&(devices[DEVPERINT + DEVCNT]));
 
     /*remove it*/
-    while (removedPcbs != NULL)
-    {
+    while (removedPcbs != NULL){
         /*need to place it on ready queue*/
-        insertProcQ(&readyQ, removedPcbs);
+        insertProcQ(&readyQueue, removedPcbs);
 
         /*decrease soft block count*/
         softBlock -= 1;
-        removedPcbs = removeBlocked(&(deviceSema4[DEVPERINT + DEVCNT]));
+
+        /*remove it*/
+        removedPcbs = removeBlocked(&(devices[DEVPERINT + DEVCNT]));
     }
 
      /*reset psuedo to 0*/
-    deviceSema4[DEVPERINT + DEVCNT] = 0;
+    devices[DEVPERINT + DEVCNT] = 0;
 
     /*check there is no currentproc, call scheduleProcess*/
-    if (currentproc == NULL)
-    {
+    if (currentproc == NULL){
+
+        /*schedule it*/
         scheduleProcess();
     }
-
-    
 }
 
-/**this function will handle any devices that are going to interrupt using devices to map to correct device**/
-void deviceIOHandler(int lineNum)
-{
+
+void IOHandler(int lineNum){
+    /**This Function will handle any devices that are going to interrupt using 
+     **a bitmap that will point to correct device and the correct response to that
+     **device. This also contains the special intructions related to the terminal. The
+     **function is given a lineNum which is based off a constant associated with trapH */
 
     /*Local Variables*/
-    int deviceNumber;
-    unsigned int devStatus;
-    unsigned int bitMap;
-    volatile devregarea_t *deviceRegister;
-    pcb_t *pseudoSys4;
-    volatile devregarea_t *devRegisters;
-    int deviceFound;
-    
 
-    deviceFound = FALSE; /*tells us if we found the deviceNum*/
+    int found; /*gives the status of a device*/
+    pcb_t *temp; /*pcb*/
+    int deviceNum; /*gives device number*/
+    unsigned int bitMap; /*bit map*/
+    unsigned int devStatus; /*device status*/
+    volatile devregarea_t *devReg; /* terminal device register*/
+    volatile devregarea_t *deviceRegister; /*device register*/
+
+    /*set found to FALSE until changed*/
+    found = FALSE; 
 
     /*establish addressing*/
     deviceRegister = (devregarea_t *)RAMBASEADDR;
     bitMap = deviceRegister->interrupt_dev[(lineNum - DISKINT)];
 
     /*if the bitMap has nothing in it, panic*/
-    if ((&(bitMap) == NULL) & !(deviceFound))
-    {
+    if ((&(bitMap) == NULL) & !(found)){
         PANIC();
     }
 
     /*see which device is on, bitmapping*/
-    if (((bitMap & DEVICE0) != 0) & !(deviceFound) )
-    {
-        deviceNumber = 0;
-        deviceFound = TRUE; /*we found the device!*/
+    if (((bitMap & DEVICE0) != 0) & !(found) ){
+        /*set the device number to the proper device*/
+        deviceNum = 0;
+
+        /*set this to True when you find it*/
+        found = TRUE; 
     }
 
-    if (((bitMap & DEVICE1) != 0) & !(deviceFound))
-    {
-        deviceNumber = 1;
-        deviceFound = TRUE;
+    if (((bitMap & DEVICE1) != 0) & !(found)){
+        deviceNum = 1;
+        found = TRUE;
     }
 
-    if (((bitMap & DEVICE0) != 0) & !(deviceFound))
-    {
-        deviceNumber = 2;
-        deviceFound = TRUE;
+    if (((bitMap & DEVICE0) != 0) & !(found)){
+        deviceNum = 2;
+        found = TRUE;
     }
 
-    if (((bitMap & DEVICE0) != 0) & !(deviceFound))
-    {
-        deviceNumber = 3;
-        deviceFound = TRUE;
+    if (((bitMap & DEVICE0) != 0) & !(found)){
+        deviceNum = 3;
+        found = TRUE;
     }
 
-    if (((bitMap & DEVICE0) != 0) & !(deviceFound))
-    {
-        deviceNumber = 4;
-        deviceFound = TRUE;
+    if (((bitMap & DEVICE0) != 0) & !(found)){
+        deviceNum = 4;
+        found = TRUE;
     }
 
-    if (((bitMap & DEVICE0) != 0) & !(deviceFound))
-    {
-        deviceNumber = 5;
-        deviceFound = TRUE;
+    if (((bitMap & DEVICE0) != 0) & !(found)){
+        deviceNum = 5;
+        found = TRUE;
     }
 
-    if (((bitMap & DEVICE0) != 0) & !(deviceFound))
-    {
-        deviceNumber = 6;
-        deviceFound = TRUE;
+    if (((bitMap & DEVICE0) != 0) & !(found)){
+        deviceNum = 6;
+        found = TRUE;
     }
 
-    if (((bitMap & DEVICE0) != 0) & !(deviceFound))
-    {
-        deviceNumber = 7;
-        deviceFound = TRUE;
+    if (((bitMap & DEVICE0) != 0) & !(found)){
+        deviceNum = 7;
+        found = TRUE;
     }
 
     /*determine sem for device*/
-    deviceNumber += ((lineNum - DISKINT) * DEVPERINT);
+    deviceNum += ((lineNum - DISKINT) * DEVPERINT);
 
     /*case for terminal*/
-    if (lineNum == TERMINT)
-    {
+    if (lineNum == TERMINT){
         /*check to see if terminal is transmit or receive*/ 
 
-        /*set devRegisters*/
+        /*set devReg*/
 
-        devRegisters = (devregarea_t *)RAMBASEADDR;
+        devReg = (devregarea_t *)RAMBASEADDR;
 
         /*get status from registers*/
-        devStatus = devRegisters->devreg[(deviceNumber)].t_transm_status;
+        devStatus = devReg->devreg[(deviceNum)].t_transm_status;
 
         if ((devStatus & BITS) != TRUE){
 
             /*ack the recieve*/
-            devRegisters->devreg[(deviceNumber)].t_transm_command = ACK;
+            devReg->devreg[(deviceNum)].t_transm_command = ACK;
         }
 
         else
         {
-            devStatus = devRegisters->devreg[(deviceNumber)].t_recv_status;
-            devRegisters->devreg[(deviceNumber)].t_recv_command = ACK;
+            devStatus = devReg->devreg[(deviceNum)].t_recv_status; /*copy the status*/
+            devReg->devreg[(deviceNum)].t_recv_command = ACK; /*ACK the interrupt*/
 
             /*increment the device sema4 by DEVPERINT*/
-            deviceNumber += DEVPERINT;
+            deviceNum += DEVPERINT;
         }
     }
 
-    else
-    {
+    else{
 
-        devStatus = (deviceRegister->devreg[deviceNumber]).d_status; /*copy status*/
-        (deviceRegister->devreg[deviceNumber]).d_command = ACK;      /*ACK interrupt*/
+        devStatus = (deviceRegister->devreg[deviceNum]).d_status; /*copy the status*/
+        (deviceRegister->devreg[deviceNum]).d_command = ACK;      /*ACK the interrupt*/
     }
 
-    deviceSema4[deviceNumber] += 1;
+    /*increase the device amount*/
+    devices[deviceNum] += 1;
 
     /*done waiting for IO, unblock pcb */
-    if (deviceSema4[deviceNumber] <= 0)
-    {
-        pseudoSys4 = removeBlocked(&(deviceSema4[deviceNumber]));
+    if (devices[deviceNum] <= 0){
+        temp = removeBlocked(&(devices[deviceNum]));
 
-        if (pseudoSys4 != NULL)
+        if (temp != NULL)
         {
             /*if there is a process, then unblock and set the status*/
-            pseudoSys4->p_s.s_v0 = devStatus;
-            insertProcQ(&readyQ, pseudoSys4);
+            temp->p_s.s_v0 = devStatus;
 
+            /*insert*/
+            insertProcQ(&readyQueue, temp);
+
+            /*decrease soft block count*/
             softBlock -= 1;
         }
     }
 
-    else
-    {
+    else{
         /*nothing to unblock*/
+
         /*save the state because there's no where else*/
-        saveState[deviceNumber] = devStatus;
+        saveState[deviceNum] = devStatus;
     }
 
     /*if there is no currentProc*/
-    if (currentproc == NULL)
-    {
+    if (currentproc == NULL){
+
+        /*schedule*/
         scheduleProcess();
     }
 }

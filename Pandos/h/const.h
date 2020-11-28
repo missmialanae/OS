@@ -99,7 +99,7 @@
 #define TRANCOMMAND 	3
 
 /* device common STATUS codes */
-#define UNINSTALLED		0
+#define UNINSTALLED			0
 #define READY			    1
 #define BUSY			    3
 
@@ -118,15 +118,15 @@
 #define KUSEG           0x80000000
 #define RAMSTART        0x20000000
 #define BIOSDATAPAGE    0x0FFFF000
-#define	PASSUPVECTOR	  0x0FFFF900
+#define	PASSUPVECTOR	0x0FFFF900
 
 /* Exceptions related constants */
 #define	PGFAULTEXCEPT	  0
 #define GENERALEXCEPT	  1
-#define GOTOSYSCALL       8
-#define GOTOINTERRUPTS    0
-#define PGFAULTCAUSEMAX   3
-#define PGFAULTCAUSEMIN   0
+#define SYSCALLS       	  8
+#define INTERRUPTS        0
+#define CAUSEMAX   		  3
+#define CAUSEMIN   		  0
 
 /* operations */
 #define	MIN(A,B)		((A) < (B) ? A : B)
